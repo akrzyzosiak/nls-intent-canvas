@@ -320,6 +320,42 @@ tr:hover td{background:var(--surface1)}
 </head>
 <body>
 
+<div id="pw-gate" style="position:fixed;inset:0;background:var(--bg,#F2F0E9);display:flex;align-items:center;justify-content:center;z-index:9999;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
+  <div style="background:white;border:0.5px solid #E2E0D8;border-radius:12px;padding:32px 28px;width:320px;display:flex;flex-direction:column;gap:16px">
+    <div style="font-size:15px;font-weight:500;color:#1A1A18">NLS intent rules + live canvas</div>
+    <div style="font-size:12px;color:#6B6960">Enter the password to continue</div>
+    <input id="pw-input" type="password" placeholder="Password" autocomplete="off"
+      style="padding:10px 12px;border:0.5px solid #E2E0D8;border-radius:8px;font-size:14px;font-family:inherit;outline:none;color:#1A1A18"
+      onkeydown="if(event.key==='Enter')checkPw()">
+    <div id="pw-error" style="font-size:12px;color:#712B13;display:none">Incorrect password</div>
+    <button onclick="checkPw()"
+      style="padding:10px;background:#185FA5;border:none;border-radius:8px;color:white;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit">
+      Continue
+    </button>
+  </div>
+</div>
+<script>
+  (function(){
+    if(sessionStorage.getItem('nls-auth')==='1'){
+      document.addEventListener('DOMContentLoaded',function(){
+        var g=document.getElementById('pw-gate');
+        if(g) g.style.display='none';
+      });
+    }
+  })();
+  function checkPw(){
+    var val=document.getElementById('pw-input').value;
+    if(val==='nls-rules'){
+      sessionStorage.setItem('nls-auth','1');
+      document.getElementById('pw-gate').style.display='none';
+    } else {
+      document.getElementById('pw-error').style.display='block';
+      document.getElementById('pw-input').value='';
+      document.getElementById('pw-input').focus();
+    }
+  }
+</script>
+
 <div class="header">
   <h1>NLS intent rules + live canvas</h1>
   <p>Rules structure · Component ordering · Slot-level content rules · Live preview</p>
