@@ -6,7 +6,7 @@
 <title>NLS Intent Rules + Live Canvas</title>
 <style>
 :root{
-  --bg:#F2F0E9;--surface:#fff;--surface1:#F2F0E9;--border:#E2E0D8;--border-strong:#B4B2A9;
+  --bg:#F4F5F7;--surface:#fff;--surface1:#F4F5F7;--border:#E1E4E8;--border-strong:#C8CDD4;
   --text-primary:#1A1A18;--text-secondary:#6B6960;--text-muted:#9C9A92;
   --sky:#185FA5;--sky-bg:#E6F1FB;--sky-border:#B5D4F4;
   --teal:#085041;--teal-bg:#E1F5EE;--teal-border:#9FE1CB;
@@ -18,13 +18,20 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:13px;color:var(--text-primary);min-height:100vh}
 
-.header{padding:16px 20px 12px;border-bottom:0.5px solid var(--border);background:var(--surface)}
-.header h1{font-size:16px;font-weight:500;margin-bottom:2px}
-.header p{font-size:12px;color:var(--text-secondary)}
+.header{padding:0 20px;height:56px;display:flex;align-items:center;justify-content:space-between;border-bottom:none;background:#0D1B36;flex-shrink:0}
+.header-left{display:flex;align-items:center;gap:10px}
+.header-logo-mark{display:flex;flex-direction:column;align-items:center;gap:2px}
+.header-logo-rays{display:flex;gap:3px;margin-bottom:1px}
+.header-logo-ray{width:3px;height:11px;background:white;border-radius:2px}
+.header-logo-ray.short{height:7px;opacity:0.7}
+.header-logo-arc{width:18px;height:9px;border:2.5px solid white;border-bottom:none;border-radius:9px 9px 0 0}
+.header h1{font-size:15px;font-weight:600;color:white;letter-spacing:-0.2px;margin:0}
+.header-divider{color:rgba(255,255,255,0.25);font-size:18px;font-weight:200;margin:0 2px}
+.header p{font-size:13px;color:rgba(255,255,255,0.6);margin:0}
 
-.main-tabs{display:flex;border-bottom:0.5px solid var(--border);background:var(--surface);padding:0 20px}
-.main-tab{padding:10px 16px;font-size:13px;cursor:pointer;color:var(--text-secondary);border:none;background:transparent;border-bottom:2px solid transparent;transition:all 0.15s;font-weight:400}
-.main-tab.active{color:var(--sky);border-bottom-color:var(--sky);font-weight:500}
+.main-tabs{display:flex;border-bottom:1px solid #E1E4E8;background:white;padding:0 20px}
+.main-tab{padding:12px 16px;font-size:13px;cursor:pointer;color:#626971;border:none;background:transparent;border-bottom:2px solid transparent;transition:all 0.15s;font-weight:400}
+.main-tab.active{color:#00A698;border-bottom-color:#00A698;font-weight:600}
 
 .content{padding:16px 20px}
 
@@ -320,18 +327,42 @@ tr:hover td{background:var(--surface1)}
 </head>
 <body>
 
-<div id="pw-gate" style="position:fixed;inset:0;background:var(--bg,#F2F0E9);display:flex;align-items:center;justify-content:center;z-index:9999;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
-  <div style="background:white;border:0.5px solid #E2E0D8;border-radius:12px;padding:32px 28px;width:320px;display:flex;flex-direction:column;gap:16px">
-    <div style="font-size:15px;font-weight:500;color:#1A1A18">NLS intent rules + live canvas</div>
-    <div style="font-size:12px;color:#6B6960">Enter the password to continue</div>
-    <input id="pw-input" type="password" placeholder="Password" autocomplete="off"
-      style="padding:10px 12px;border:0.5px solid #E2E0D8;border-radius:8px;font-size:14px;font-family:inherit;outline:none;color:#1A1A18"
-      onkeydown="if(event.key==='Enter')checkPw()">
-    <div id="pw-error" style="font-size:12px;color:#712B13;display:none">Incorrect password</div>
-    <button onclick="checkPw()"
-      style="padding:10px;background:#185FA5;border:none;border-radius:8px;color:white;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit">
-      Continue
-    </button>
+<div id="pw-gate" style="position:fixed;inset:0;background:#F4F5F7;display:flex;flex-direction:column;z-index:9999;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
+  <div style="background:#0D1B36;height:56px;padding:0 24px;display:flex;align-items:center;gap:10px;flex-shrink:0">
+    <div style="display:flex;align-items:center;gap:8px">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:2px">
+        <div style="display:flex;gap:3px;margin-bottom:1px">
+          <div style="width:3px;height:7px;background:white;border-radius:2px;opacity:0.7"></div>
+          <div style="width:3px;height:11px;background:white;border-radius:2px"></div>
+          <div style="width:3px;height:11px;background:white;border-radius:2px"></div>
+          <div style="width:3px;height:11px;background:white;border-radius:2px"></div>
+          <div style="width:3px;height:7px;background:white;border-radius:2px;opacity:0.7"></div>
+        </div>
+        <div style="width:18px;height:9px;border:2.5px solid white;border-bottom:none;border-radius:9px 9px 0 0"></div>
+      </div>
+      <span style="color:white;font-size:15px;font-weight:600;letter-spacing:-0.2px">Skyscanner</span>
+    </div>
+    <span style="color:rgba(255,255,255,0.25);font-size:18px;font-weight:200;margin:0 2px">|</span>
+    <span style="color:rgba(255,255,255,0.6);font-size:13px">NLS Intent Rules + Live Canvas</span>
+  </div>
+  <div style="flex:1;display:flex;align-items:center;justify-content:center">
+    <div style="background:white;border:1px solid #E1E4E8;border-radius:8px;padding:32px;width:360px;box-shadow:0 2px 8px rgba(0,0,0,0.07)">
+      <div style="font-size:20px;font-weight:700;color:#1B1E27;margin-bottom:6px">Sign in</div>
+      <div style="font-size:13px;color:#626971;margin-bottom:24px">Enter your access password to continue</div>
+      <div style="font-size:11px;font-weight:600;color:#1B1E27;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em">Password</div>
+      <input id="pw-input" type="password" placeholder="Enter password" autocomplete="off"
+        style="width:100%;padding:10px 12px;border:1px solid #C8CDD4;border-radius:6px;font-size:14px;font-family:inherit;outline:none;color:#1B1E27;box-sizing:border-box;margin-bottom:8px"
+        onkeydown="if(event.key==='Enter')checkPw()"
+        onfocus="this.style.borderColor='#00A698'"
+        onblur="this.style.borderColor='#C8CDD4'">
+      <div id="pw-error" style="font-size:12px;color:#C0392B;margin-bottom:8px;display:none">Incorrect password. Try again.</div>
+      <button onclick="checkPw()"
+        style="width:100%;padding:11px;background:#00A698;border:none;border-radius:6px;color:white;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;margin-top:4px"
+        onmouseover="this.style.background='#008F88'"
+        onmouseout="this.style.background='#00A698'">
+        Continue
+      </button>
+    </div>
   </div>
 </div>
 <script>
@@ -357,8 +388,21 @@ tr:hover td{background:var(--surface1)}
 </script>
 
 <div class="header">
-  <h1>NLS intent rules + live canvas</h1>
-  <p>Rules structure · Component ordering · Slot-level content rules · Live preview</p>
+  <div class="header-left">
+    <div class="header-logo-mark">
+      <div class="header-logo-rays">
+        <div class="header-logo-ray short"></div>
+        <div class="header-logo-ray"></div>
+        <div class="header-logo-ray"></div>
+        <div class="header-logo-ray"></div>
+        <div class="header-logo-ray short"></div>
+      </div>
+      <div class="header-logo-arc"></div>
+    </div>
+    <h1>Skyscanner</h1>
+    <span class="header-divider">|</span>
+    <p>NLS Intent Rules + Live Canvas</p>
+  </div>
 </div>
 
 <div class="main-tabs">
