@@ -1,0 +1,438 @@
+{
+  "rules": [
+    {
+      "id": "R1",
+      "conditionDisplay": "NOT origin",
+      "signals": [{ "key": "origin", "present": false }],
+      "componentId": "origin_gate",
+      "action": "ask_first",
+      "displayOrder": 1,
+      "rationale": "Always blocks — no results without origin"
+    },
+    {
+      "id": "R2",
+      "conditionDisplay": "NOT dates + budget",
+      "signals": [{ "key": "dates", "present": false }, { "key": "budget", "present": true }],
+      "componentId": "date_gate",
+      "action": "ask_first",
+      "displayOrder": 2,
+      "rationale": "Budget pricing needs dates"
+    },
+    {
+      "id": "R3",
+      "conditionDisplay": "multi (wt 5)",
+      "signals": [{ "key": "multi", "present": true }],
+      "componentId": "multi_city",
+      "action": "show",
+      "displayOrder": 3,
+      "rationale": "Strongest explicit signal — route verification primary"
+    },
+    {
+      "id": "R4",
+      "conditionDisplay": "budget (5) + hotel (4)",
+      "signals": [{ "key": "budget", "present": true }, { "key": "hotel", "present": true }],
+      "componentId": "budget_matrix",
+      "action": "show",
+      "displayOrder": 3,
+      "rationale": "Total cost is primary need — replaces card grid at slot 3"
+    },
+    {
+      "id": "R5",
+      "conditionDisplay": "destination vague (3)",
+      "signals": [{ "key": "explore", "present": true }],
+      "componentId": "dest_card",
+      "action": "show",
+      "displayOrder": 3,
+      "rationale": "Default discovery — shown unless higher-weight rule displaces"
+    },
+    {
+      "id": "R6",
+      "conditionDisplay": "budget + hotel + dates + NOT multi",
+      "signals": [
+        { "key": "budget", "present": true },
+        { "key": "hotel", "present": true },
+        { "key": "dates", "present": true },
+        { "key": "multi", "present": false }
+      ],
+      "componentId": "duration_matrix",
+      "action": "show",
+      "displayOrder": 4,
+      "rationale": "Trip length changes total cost significantly — show after budget matrix"
+    },
+    {
+      "id": "R7",
+      "conditionDisplay": "explore + origin + NOT multi",
+      "signals": [
+        { "key": "explore", "present": true },
+        { "key": "origin", "present": true },
+        { "key": "multi", "present": false }
+      ],
+      "componentId": "convenience_card",
+      "action": "show",
+      "displayOrder": 4,
+      "rationale": "Supporting flight detail — after destination card"
+    },
+    {
+      "id": "R8",
+      "conditionDisplay": "flexDates OR NOT dates",
+      "signals": [{ "key": "flexDates", "present": true }],
+      "componentId": "whentogo",
+      "action": "show",
+      "displayOrder": 5,
+      "rationale": "Dates open — help user pick best month"
+    },
+    {
+      "id": "R9",
+      "conditionDisplay": "companion type present",
+      "signals": [{ "key": "solo", "present": true }],
+      "componentId": "dest_card",
+      "action": "modify_slots",
+      "displayOrder": 3,
+      "rationale": "Companion type modifies card slot content — tag + match row variant"
+    },
+    {
+      "id": "R10",
+      "conditionDisplay": "Any model-side signal",
+      "signals": [{ "key": "carDep", "present": true }],
+      "componentId": "proactive",
+      "action": "show_if_confident",
+      "displayOrder": 6,
+      "rationale": "Always after results — never displaces explicit content"
+    }
+  ],
+  "proactiveInsights": [
+    {
+      "id": "PI-1",
+      "category": "Existing",
+      "type": "Car hire nudge",
+      "triggerSignal": "carDep",
+      "confidence": "High",
+      "copyPattern": "Getting around [Destination] is much easier with a hire car — many of the best spots aren't reachable by public transport",
+      "suppressIf": "User already specified car hire"
+    },
+    {
+      "id": "PI-2",
+      "category": "Existing",
+      "type": "Price timing",
+      "triggerSignal": "priceDrop",
+      "confidence": "High >80%",
+      "copyPattern": "Prices to [Destination] typically drop in the next [X] days — worth waiting if you're flexible",
+      "suppressIf": "User has specified non-flexible dates"
+    },
+    {
+      "id": "PI-3",
+      "category": "Existing",
+      "type": "Event warning",
+      "triggerSignal": "eventOverlap",
+      "confidence": "Medium",
+      "copyPattern": "Heads up — [Event] in [Destination] during your dates. Hotels book up fast and prices are higher",
+      "suppressIf": "User mentioned the event in query"
+    },
+    {
+      "id": "PI-4",
+      "category": "Existing",
+      "type": "Date adjacency",
+      "triggerSignal": "dateAdj",
+      "confidence": "High",
+      "copyPattern": "Flying [X days earlier/later] saves around [£X] — same destination, same experience",
+      "suppressIf": "User specified non-flexible dates explicitly"
+    },
+    {
+      "id": "PI-5",
+      "category": "When to travel",
+      "type": "Popular month",
+      "triggerSignal": "whenToTravel",
+      "confidence": "High",
+      "copyPattern": "September is the most popular time to go",
+      "suppressIf": "User has already specified dates in September"
+    },
+    {
+      "id": "PI-6",
+      "category": "When to travel",
+      "type": "Cheapest month",
+      "triggerSignal": "whenToTravel",
+      "confidence": "High",
+      "copyPattern": "September is the cheapest month to go",
+      "suppressIf": "User has already specified dates"
+    },
+    {
+      "id": "PI-7",
+      "category": "When to book",
+      "type": "Good time to book",
+      "triggerSignal": "bookingWindow",
+      "confidence": "High",
+      "copyPattern": "It's a good time to book — you'll likely get the best price in the next 2 weeks",
+      "suppressIf": "User has already booked or prices are rising"
+    },
+    {
+      "id": "PI-8",
+      "category": "When to book",
+      "type": "Booking lead time",
+      "triggerSignal": "bookingWindow",
+      "confidence": "High",
+      "copyPattern": "Most people book this trip 6–8 weeks in advance",
+      "suppressIf": "Trip is less than 6 weeks away"
+    },
+    {
+      "id": "PI-9",
+      "category": "Similar places",
+      "type": "Affinity tip",
+      "triggerSignal": "similarPlaces",
+      "confidence": "High",
+      "copyPattern": "Tip: people who like [Destination] also consider Mallorca",
+      "suppressIf": "User has explicitly stated destination preference"
+    },
+    {
+      "id": "PI-10",
+      "category": "Similar places",
+      "type": "Also like",
+      "triggerSignal": "similarPlaces",
+      "confidence": "Medium",
+      "copyPattern": "You might also like Mallorca, Menorca and Tenerife",
+      "suppressIf": "User has explicitly stated destination preference"
+    },
+    {
+      "id": "PI-11",
+      "category": "Similar places",
+      "type": "Travellers like you",
+      "triggerSignal": "similarPlaces",
+      "confidence": "Medium",
+      "copyPattern": "Travellers like you are also interested in Tenerife and Menorca in [month]",
+      "suppressIf": "User has explicitly stated destination preference"
+    },
+    {
+      "id": "PI-12",
+      "category": "Similar places",
+      "type": "Also looked at",
+      "triggerSignal": "similarPlaces",
+      "confidence": "Medium",
+      "copyPattern": "For similar trips, people also looked at Valencia and Cádiz",
+      "suppressIf": "User has explicitly stated destination preference"
+    },
+    {
+      "id": "PI-13",
+      "category": "Trends",
+      "type": "Fewer searches",
+      "triggerSignal": "searchTrend",
+      "confidence": "High",
+      "copyPattern": "Beat the crowds — there are 20% fewer searches than usual to [Destination] right now",
+      "suppressIf": "Searches are at or above average"
+    },
+    {
+      "id": "PI-14",
+      "category": "Trends",
+      "type": "Trending up",
+      "triggerSignal": "searchTrend",
+      "confidence": "High",
+      "copyPattern": "Trending: searches for [Destination] are up 13% this week",
+      "suppressIf": "Searches are flat or declining"
+    },
+    {
+      "id": "PI-15",
+      "category": "Trends",
+      "type": "Popular route",
+      "triggerSignal": "popularRoute",
+      "confidence": "High",
+      "copyPattern": "Most people travelling from [Origin] to [Country] choose [Destination]",
+      "suppressIf": "User has specified a different destination"
+    },
+    {
+      "id": "PI-16",
+      "category": "Trends",
+      "type": "Top route match",
+      "triggerSignal": "popularRoute",
+      "confidence": "High",
+      "copyPattern": "Most popular route for searches like yours",
+      "suppressIf": "Route is not in top 3 for origin/destination pair"
+    },
+    {
+      "id": "PI-17",
+      "category": "Trends",
+      "type": "Popular season",
+      "triggerSignal": "popularRoute",
+      "confidence": "High",
+      "copyPattern": "It's a popular time of year for trips from [Origin] to [Destination]",
+      "suppressIf": "Travel dates are in off-peak period"
+    },
+    {
+      "id": "PI-18",
+      "category": "Traveller type",
+      "type": "Budget travellers",
+      "triggerSignal": "budget",
+      "confidence": "Medium",
+      "copyPattern": "Budget travellers often choose [Destination]",
+      "suppressIf": "User has not indicated budget sensitivity"
+    },
+    {
+      "id": "PI-19",
+      "category": "Traveller type",
+      "type": "Family popular",
+      "triggerSignal": "family",
+      "confidence": "High",
+      "copyPattern": "Popular with family travellers",
+      "suppressIf": "User has not indicated family travel"
+    },
+    {
+      "id": "PI-20",
+      "category": "Traveller type",
+      "type": "Seasonal vibe",
+      "triggerSignal": "whenToTravel",
+      "confidence": "Medium",
+      "copyPattern": "For a sunny trip in [month], try [Destination]",
+      "suppressIf": "User has already selected destination"
+    },
+    {
+      "id": "PI-21",
+      "category": "Traveller type",
+      "type": "Couple tip",
+      "triggerSignal": "couple",
+      "confidence": "High",
+      "copyPattern": "Tip: couples often go to [Destination] in [month]",
+      "suppressIf": "User has not indicated couple travel"
+    },
+    {
+      "id": "PI-22",
+      "category": "Total trip costs",
+      "type": "Flight cost estimate",
+      "triggerSignal": "costEstimate",
+      "confidence": "High",
+      "copyPattern": "Flights are usually around €200 per person",
+      "suppressIf": "User has already seen flight prices"
+    },
+    {
+      "id": "PI-23",
+      "category": "Total trip costs",
+      "type": "Package cost estimate",
+      "triggerSignal": "costEstimate",
+      "confidence": "High",
+      "copyPattern": "It usually costs around €600 for flights and 2 nights in a hotel here for 2 people",
+      "suppressIf": "User has already specified hotel separately"
+    },
+    {
+      "id": "PI-24",
+      "category": "Total trip costs",
+      "type": "Hotel cost estimate",
+      "triggerSignal": "costEstimate",
+      "confidence": "High",
+      "copyPattern": "4-star hotels are usually around €200 a night",
+      "suppressIf": "User has not indicated hotel tier preference"
+    },
+    {
+      "id": "PI-25",
+      "category": "Price level",
+      "type": "Price below average",
+      "triggerSignal": "priceDrop",
+      "confidence": "High",
+      "copyPattern": "Flights are now 29% cheaper than usual",
+      "suppressIf": "Prices are at or above average"
+    },
+    {
+      "id": "PI-26",
+      "category": "Price level",
+      "type": "Price above average",
+      "triggerSignal": "priceHigh",
+      "confidence": "High",
+      "copyPattern": "Flights are more expensive than usual — you may want to wait to book",
+      "suppressIf": "User has specified non-flexible dates"
+    },
+    {
+      "id": "PI-27",
+      "category": "Price level",
+      "type": "Price average",
+      "triggerSignal": "priceAverage",
+      "confidence": "Medium",
+      "copyPattern": "Flight prices to [Destination] right now are about average",
+      "suppressIf": "Prices are significantly above or below average"
+    }
+  ],
+  "slotRules": [
+    {
+      "slot": "Card › Image",
+      "name": "Destination image",
+      "alwaysPresent": true,
+      "triggerSignal": null,
+      "content": "Fixed — destination photography",
+      "order": "Fixed top"
+    },
+    {
+      "slot": "Card › Compare",
+      "name": "Compare button",
+      "alwaysPresent": true,
+      "triggerSignal": null,
+      "content": "Fixed — \"Compare\" with checkbox",
+      "order": "Fixed top-right"
+    },
+    {
+      "slot": "Card › Name",
+      "name": "City name + country",
+      "alwaysPresent": true,
+      "triggerSignal": null,
+      "content": "Fixed — e.g. \"Ibiza · Spain\"",
+      "order": "Fixed below image"
+    },
+    {
+      "slot": "Card › Tags",
+      "name": "Vibe tags",
+      "alwaysPresent": true,
+      "triggerSignal": "signal-driven content",
+      "content": "Tags filtered by query signals. weather → temperature tag. quiet → Hidden gem. budget → value tag. dealNightlife → Nightlife scene. dealNature → Nature access. solo → Solo-friendly. couple → Romantic base. family → Family-friendly.",
+      "order": "Below city name"
+    },
+    {
+      "slot": "Match › Row 1",
+      "name": "Why it's a match — row 1",
+      "alwaysPresent": false,
+      "triggerSignal": "quiet",
+      "content": "\"Low tourist level in [month]\" — ordered FIRST when signal present",
+      "order": "Position 1 when triggered · position 3 otherwise"
+    },
+    {
+      "slot": "Match › Row 2",
+      "name": "Why it's a match — row 2",
+      "alwaysPresent": false,
+      "triggerSignal": "weather",
+      "content": "\"Expect drier weather in [month]\" — ordered after quiet row if both present",
+      "order": "Position 1 if only weather · position 2 if quiet also present"
+    },
+    {
+      "slot": "Match › Row 2b",
+      "name": "Why it's a match — dealbreaker row",
+      "alwaysPresent": false,
+      "triggerSignal": "dealNightlife / dealNature",
+      "content": "\"Great nightlife scene\" or \"Strong hiking access\" — shown when dealbreaker signal present",
+      "order": "After quiet/weather rows, before fallback"
+    },
+    {
+      "slot": "Match › Row 2c",
+      "name": "Why it's a match — companion row",
+      "alwaysPresent": false,
+      "triggerSignal": "solo / couple / family",
+      "content": "\"Great for solo travellers\" / \"Romantic neighbourhood base\" / \"Excellent family beaches\" — companion type variant",
+      "order": "After signal-driven rows, before fallback"
+    },
+    {
+      "slot": "Match › Row 3",
+      "name": "Why it's a match — fallback row",
+      "alwaysPresent": true,
+      "triggerSignal": null,
+      "content": "\"Best of both: [destination characteristic]\" — always present, always fills final slot",
+      "order": "Always last · position 3"
+    },
+    {
+      "slot": "Card › Flights",
+      "name": "Flight price section",
+      "alwaysPresent": false,
+      "triggerSignal": "explore OR flights",
+      "content": "\"[Month] flights from £[price] per traveller · [X]hr [Y]m typical flight time\"",
+      "order": "Below match box"
+    },
+    {
+      "slot": "Card › More",
+      "name": "\"More on [city]\" link",
+      "alwaysPresent": true,
+      "triggerSignal": null,
+      "content": "Fixed — links to destination detail",
+      "order": "Always last"
+    }
+  ]
+}

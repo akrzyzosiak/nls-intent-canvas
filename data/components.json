@@ -1,0 +1,76 @@
+{
+  "components": [
+    {
+      "id": "origin_gate",
+      "label": "Origin validation gate",
+      "description": "City autocomplete — blocks results until resolved",
+      "defaultPosition": 1,
+      "verticals": ["all"],
+      "figmaAsset": null
+    },
+    {
+      "id": "date_gate",
+      "label": "Date picker gate",
+      "description": "Calendar — needed for accurate pricing",
+      "defaultPosition": 2,
+      "verticals": ["all"],
+      "figmaAsset": null
+    },
+    {
+      "id": "multi_city",
+      "label": "Multi-city route map + legs",
+      "description": "Map with pins + horizontal leg timeline",
+      "defaultPosition": 3,
+      "verticals": ["explore", "flights"],
+      "figmaAsset": null
+    },
+    {
+      "id": "budget_matrix",
+      "label": "Budget cost matrix",
+      "description": "Combined flight + hotel estimate per destination",
+      "defaultPosition": 3,
+      "verticals": ["explore", "hotels"],
+      "figmaAsset": null
+    },
+    {
+      "id": "dest_card",
+      "label": "Destination card grid",
+      "description": "Ranked destinations — slots vary by signal",
+      "defaultPosition": 3,
+      "verticals": ["explore"],
+      "figmaAsset": null
+    },
+    {
+      "id": "duration_matrix",
+      "label": "Duration cost matrix",
+      "description": "3 / 5 / 7-night cost comparison — flights + hotel",
+      "defaultPosition": 4,
+      "verticals": ["explore", "hotels"],
+      "figmaAsset": null
+    },
+    {
+      "id": "convenience_card",
+      "label": "Flight convenience comparison",
+      "description": "Direct vs. 1-stop: price, total time, frequency",
+      "defaultPosition": 4,
+      "verticals": ["explore", "flights"],
+      "figmaAsset": null
+    },
+    {
+      "id": "proactive",
+      "label": "Proactive intelligence insight",
+      "description": "Unsolicited helpful insight from model-side signal",
+      "defaultPosition": 5,
+      "verticals": ["all"],
+      "figmaAsset": null
+    },
+    {
+      "id": "whentogo",
+      "label": "When-to-go chart",
+      "description": "12-month price index — cheapest months highlighted",
+      "defaultPosition": 5,
+      "verticals": ["explore"],
+      "figmaAsset": null
+    }
+  ]
+}

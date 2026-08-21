@@ -1,0 +1,1204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NLS Intent Rules + Live Canvas</title>
+<style>
+:root{
+  --bg:#F2F0E9;--surface:#fff;--surface1:#F2F0E9;--border:#E2E0D8;--border-strong:#B4B2A9;
+  --text-primary:#1A1A18;--text-secondary:#6B6960;--text-muted:#9C9A92;
+  --sky:#185FA5;--sky-bg:#E6F1FB;--sky-border:#B5D4F4;
+  --teal:#085041;--teal-bg:#E1F5EE;--teal-border:#9FE1CB;
+  --amber:#633806;--amber-bg:#FAEEDA;--amber-border:#FAC775;
+  --purple:#3C3489;--purple-bg:#EEEDFE;--purple-border:#AFA9EC;
+  --green:#27500A;--green-bg:#EAF3DE;--green-border:#C0DD97;
+  --coral:#712B13;--coral-bg:#FAECE7;--coral-border:#F5C4B3;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:13px;color:var(--text-primary);min-height:100vh}
+
+.header{padding:16px 20px 12px;border-bottom:0.5px solid var(--border);background:var(--surface)}
+.header h1{font-size:16px;font-weight:500;margin-bottom:2px}
+.header p{font-size:12px;color:var(--text-secondary)}
+
+.main-tabs{display:flex;border-bottom:0.5px solid var(--border);background:var(--surface);padding:0 20px}
+.main-tab{padding:10px 16px;font-size:13px;cursor:pointer;color:var(--text-secondary);border:none;background:transparent;border-bottom:2px solid transparent;transition:all 0.15s;font-weight:400}
+.main-tab.active{color:var(--sky);border-bottom-color:var(--sky);font-weight:500}
+
+.content{padding:16px 20px}
+
+/* sub-tabs */
+.sub-tabs{display:flex;gap:2px;margin-bottom:14px;background:var(--surface1);padding:3px;border-radius:8px;width:fit-content;flex-wrap:wrap}
+.sub-tab{padding:5px 12px;font-size:12px;border-radius:6px;cursor:pointer;color:var(--text-secondary);border:none;background:transparent;transition:all 0.15s;font-weight:500}
+.sub-tab.active{background:var(--surface);color:var(--text-primary);border:0.5px solid var(--border)}
+.sub-tab .dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px;vertical-align:middle}
+.panel{display:none}.panel.active{display:block}
+
+/* explain banners */
+.explain{border-radius:8px;padding:9px 12px;font-size:12px;margin-bottom:12px;line-height:1.5}
+.exp-blue{background:var(--sky-bg);border:0.5px solid var(--sky-border);color:var(--sky)}
+.exp-green{background:var(--green-bg);border:0.5px solid var(--green-border);color:var(--green)}
+.exp-purple{background:var(--purple-bg);border:0.5px solid var(--purple-border);color:var(--purple)}
+.exp-teal{background:var(--teal-bg);border:0.5px solid var(--teal-border);color:var(--teal)}
+
+/* tables */
+.table-actions{display:flex;justify-content:flex-end;margin-bottom:6px}
+.reset-btn{font-size:11px;color:var(--text-muted);background:var(--surface);border:0.5px solid var(--border);border-radius:5px;padding:4px 10px;cursor:pointer}
+.reset-btn:hover{border-color:var(--border-strong);color:var(--text-primary)}
+table{width:100%;border-collapse:collapse;background:var(--surface);border-radius:10px;overflow:hidden;border:0.5px solid var(--border);margin-bottom:10px}
+thead tr{background:var(--surface1);border-bottom:0.5px solid var(--border)}
+th{padding:8px 12px;text-align:left;font-size:11px;font-weight:500;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.04em;white-space:nowrap}
+th.editable-col{background:#E8F7E8;color:var(--green)}
+td{padding:8px 12px;border-bottom:0.5px solid var(--border);vertical-align:middle;font-size:12px;color:var(--text-secondary)}
+td.editable-cell{background:#F8FDF8}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--surface1)}
+.primary{font-weight:500;color:var(--text-primary)}
+.rel-note{font-size:11px;color:var(--text-muted);padding:7px 12px;background:var(--surface1);border-top:0.5px solid var(--border)}
+
+/* contenteditable */
+[contenteditable]{outline:none;border-radius:3px;transition:outline 0.1s}
+[contenteditable]:hover{outline:1px dashed var(--border-strong);cursor:text}
+[contenteditable]:focus{outline:1.5px solid var(--sky)}
+
+/* pills */
+.pill{display:inline-flex;align-items:center;font-size:11px;padding:2px 8px;border-radius:10px;font-weight:500;margin:1px;white-space:nowrap}
+.p-blue{background:var(--sky-bg);color:var(--sky);border:0.5px solid var(--sky-border)}
+.p-teal{background:var(--teal-bg);color:var(--teal);border:0.5px solid var(--teal-border)}
+.p-amber{background:var(--amber-bg);color:var(--amber);border:0.5px solid var(--amber-border)}
+.p-purple{background:var(--purple-bg);color:var(--purple);border:0.5px solid var(--purple-border)}
+.p-green{background:var(--green-bg);color:var(--green);border:0.5px solid var(--green-border)}
+.p-coral{background:var(--coral-bg);color:var(--coral);border:0.5px solid var(--coral-border)}
+.p-gray{background:var(--surface1);color:var(--text-secondary);border:0.5px solid var(--border)}
+.chip{display:inline-flex;align-items:center;font-size:11px;padding:2px 7px;border-radius:5px;background:var(--surface1);border:0.5px solid var(--border);color:var(--text-secondary);margin:1px}
+.order-num{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--sky-bg);color:var(--sky);font-size:11px;font-weight:500;border:0.5px solid var(--sky-border)}
+.wbar{height:5px;border-radius:3px;background:var(--border);overflow:hidden;width:50px;display:inline-block;vertical-align:middle;margin-left:5px}
+.wfill{height:100%;border-radius:3px;background:var(--sky)}
+
+/* canvas layout */
+.canvas-layout{display:grid;grid-template-columns:280px 1fr;gap:16px;align-items:start}
+.signal-panel{background:var(--surface);border:0.5px solid var(--border);border-radius:10px;overflow:hidden}
+.signal-panel-head{padding:10px 13px;border-bottom:0.5px solid var(--border);font-size:12px;font-weight:500;background:var(--surface1)}
+.signal-panel-sub{padding:4px 13px 8px;font-size:11px;color:var(--text-muted);border-bottom:0.5px solid var(--border)}
+.signal-group{padding:8px 13px;border-bottom:0.5px solid var(--border)}
+.signal-group:last-child{border-bottom:none}
+.signal-group-label{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-muted);margin-bottom:6px}
+.sig-btn{display:flex;align-items:center;gap:7px;padding:6px 9px;border-radius:7px;cursor:pointer;border:0.5px solid var(--border);background:var(--surface1);margin-bottom:4px;transition:all 0.15s;width:100%;text-align:left}
+.sig-btn:last-child{margin-bottom:0}
+.sig-btn:hover{border-color:var(--border-strong)}
+.sig-btn.on{background:var(--sky-bg);border-color:var(--sky-border)}
+.sig-dot{width:8px;height:8px;border-radius:50%;background:var(--border-strong);flex-shrink:0}
+.sig-btn.on .sig-dot{background:var(--sky)}
+.sig-label{font-size:12px;font-weight:500;color:var(--text-primary);flex:1}
+.sig-btn.on .sig-label{color:var(--sky)}
+.sig-desc{font-size:10px;color:var(--text-muted)}
+.sig-btn.on .sig-desc{color:#3478C5}
+
+/* preview area */
+.preview-area{display:flex;flex-direction:column;gap:12px}
+.query-bar{background:var(--surface);border:0.5px solid var(--border);border-radius:8px;padding:9px 13px;display:flex;align-items:center;gap:8px}
+.query-bar-text{font-size:13px;color:var(--text-primary);flex:1;font-style:italic}
+.query-bar-origin{font-size:11px;color:var(--text-secondary);background:var(--surface1);border:0.5px solid var(--border);border-radius:5px;padding:2px 8px}
+.active-signals{display:flex;gap:4px;flex-wrap:wrap;min-height:20px}
+.stage-label{font-size:11px;font-weight:500;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px}
+
+/* gate cards */
+.gate-card{background:var(--surface);border:1.5px solid var(--amber-border);border-radius:10px;padding:14px}
+.gate-head{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.gate-title{font-size:13px;font-weight:500;color:var(--amber)}
+.gate-desc{font-size:12px;color:var(--text-secondary);margin-bottom:10px;line-height:1.5}
+.gate-input{width:100%;padding:8px 10px;border:0.5px solid var(--border);border-radius:7px;font-size:13px;color:var(--text-primary);background:var(--surface1);font-family:inherit}
+.gate-row{display:flex;gap:8px;margin-top:8px}
+.gate-input-half{flex:1;padding:8px 10px;border:0.5px solid var(--border);border-radius:7px;font-size:13px;color:var(--text-primary);background:var(--surface1);font-family:inherit}
+
+/* destination card */
+.dest-card{background:var(--surface);border:0.5px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.04)}
+.dest-img{height:140px;background:linear-gradient(160deg,#7EC8E3,#185FA5);position:relative}
+.dest-img-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(4,44,83,0.3),transparent 60%)}
+.compare-btn{position:absolute;top:10px;right:10px;background:rgba(255,255,255,0.92);border:0.5px solid rgba(0,0,0,0.1);border-radius:7px;padding:4px 10px;font-size:11px;font-weight:500;color:var(--text-primary);display:flex;align-items:center;gap:5px;cursor:pointer}
+.compare-check{width:14px;height:14px;border:1.5px solid var(--border-strong);border-radius:3px;flex-shrink:0}
+.dest-body{padding:14px}
+.dest-name{font-size:20px;font-weight:700;color:var(--text-primary);margin-bottom:2px}
+.dest-country{font-size:13px;color:var(--text-secondary)}
+.dest-tags{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 12px}
+.dest-tag{font-size:11px;color:var(--text-secondary);display:flex;align-items:center;gap:3px}
+.dest-tag+.dest-tag::before{content:'·';margin-right:2px;color:var(--text-muted)}
+.match-box{border:1.5px solid var(--sky-border);border-radius:8px;padding:10px 12px;margin-bottom:10px;background:#FAFCFF}
+.match-title{font-size:12px;font-weight:600;color:var(--sky);display:flex;align-items:center;gap:5px;margin-bottom:8px}
+.match-row{font-size:12px;color:var(--text-secondary);display:flex;align-items:flex-start;gap:7px;margin-bottom:5px;line-height:1.4}
+.match-row:last-child{margin-bottom:0}
+.match-dot{width:5px;height:5px;border-radius:50%;background:var(--sky);flex-shrink:0;margin-top:4px}
+.match-row.signal-driven .match-dot{background:var(--teal)}
+.match-row.signal-driven span{color:var(--teal)}
+.flight-box{border:0.5px solid var(--border);border-radius:8px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between}
+.flight-label{font-size:11px;color:var(--text-secondary);margin-bottom:2px;display:flex;align-items:center;gap:5px}
+.flight-price{font-size:18px;font-weight:700;color:var(--text-primary)}
+.flight-price span{font-size:12px;font-weight:400;color:var(--text-secondary)}
+.flight-time{font-size:11px;color:var(--text-muted);margin-top:2px}
+.flight-arrow{font-size:18px;color:var(--text-muted)}
+.more-link{text-align:center;padding:10px 0 2px;font-size:13px;color:var(--text-primary);text-decoration:underline;cursor:pointer}
+
+/* multi-city */
+.multi-card{background:var(--surface);border:0.5px solid var(--border);border-radius:10px;overflow:hidden}
+.multi-map{height:100px;background:linear-gradient(160deg,#A8D4E0,#C9E4B5);display:flex;align-items:center;justify-content:center}
+.multi-map-label{font-size:11px;color:var(--text-secondary);background:rgba(255,255,255,0.8);padding:3px 8px;border-radius:5px}
+.multi-body{padding:12px 14px}
+.multi-leg{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:0.5px solid var(--border)}
+.multi-leg:first-child{border-top:none}
+.multi-num{width:20px;height:20px;border-radius:50%;background:var(--sky);color:white;font-size:10px;font-weight:500;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.multi-route{font-size:12px;font-weight:500;color:var(--text-primary)}
+.multi-detail{font-size:11px;color:var(--text-secondary)}
+.multi-date{font-size:11px;color:var(--amber);text-decoration:underline;cursor:pointer}
+
+/* budget matrix */
+.budget-card{background:var(--surface);border:0.5px solid var(--border);border-radius:10px;padding:12px 14px}
+.budget-head{font-size:12px;font-weight:500;color:var(--text-primary);margin-bottom:10px}
+.budget-grid{display:grid;grid-template-columns:1fr 1px 1fr 1px 1fr;background:var(--surface1);border-radius:8px;overflow:hidden;border:0.5px solid var(--border);margin-bottom:10px}
+.budget-cell{padding:10px;text-align:center}
+.budget-divider{background:var(--border)}
+.budget-cell-label{font-size:10px;color:var(--text-muted);margin-bottom:3px}
+.budget-cell-val{font-size:16px;font-weight:600;color:var(--text-primary)}
+.budget-cell-val.total{color:var(--sky)}
+.budget-cell-sub{font-size:10px;color:var(--text-muted);margin-top:1px}
+.budget-cta{width:100%;padding:9px;background:#0D1B36;border:none;border-radius:8px;color:white;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit}
+
+/* duration matrix */
+.duration-card{background:var(--surface);border:0.5px solid var(--border);border-radius:10px;padding:12px 14px}
+.duration-head{font-size:12px;font-weight:500;color:var(--text-primary);margin-bottom:10px}
+.duration-table{width:100%;border-collapse:collapse;border:0.5px solid var(--border);border-radius:8px;overflow:hidden}
+.duration-table th{padding:8px 10px;font-size:11px;font-weight:500;color:var(--text-muted);background:var(--surface1);text-align:center;border-bottom:0.5px solid var(--border)}
+.duration-table th:first-child{text-align:left}
+.duration-table td{padding:8px 10px;font-size:12px;color:var(--text-secondary);border-bottom:0.5px solid var(--border);text-align:center}
+.duration-table td:first-child{text-align:left;font-weight:500;color:var(--text-primary)}
+.duration-table tr:last-child td{border-bottom:none;font-weight:600}
+.duration-best{background:var(--sky-bg);color:var(--sky) !important;font-weight:600 !important}
+.duration-table tr:last-child .duration-best{color:var(--sky) !important}
+
+/* convenience card */
+.convenience-card{background:var(--surface);border:0.5px solid var(--border);border-radius:10px;padding:12px 14px}
+.convenience-head{font-size:12px;font-weight:500;color:var(--text-primary);margin-bottom:10px}
+.convenience-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.convenience-col{border:0.5px solid var(--border);border-radius:8px;padding:10px 12px}
+.convenience-col.best{border-color:var(--sky-border);background:var(--sky-bg)}
+.convenience-col-label{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:0.04em;color:var(--text-muted);margin-bottom:6px}
+.convenience-col.best .convenience-col-label{color:var(--sky)}
+.convenience-price{font-size:18px;font-weight:700;color:var(--text-primary);margin-bottom:4px}
+.convenience-row{font-size:11px;color:var(--text-secondary);margin-bottom:3px;display:flex;justify-content:space-between}
+.convenience-badge{font-size:10px;font-weight:500;background:var(--sky);color:white;border-radius:4px;padding:1px 6px;margin-left:5px}
+
+/* proactive */
+.proactive-card{background:var(--green-bg);border:0.5px solid var(--green-border);border-radius:10px;padding:12px 14px}
+.proactive-head{font-size:11px;font-weight:500;color:var(--green);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:5px}
+.proactive-text{font-size:12px;color:var(--teal);line-height:1.5}
+
+/* when-to-go chart */
+.whentogo-card{background:var(--surface);border:0.5px solid var(--border);border-radius:10px;padding:12px 14px}
+.whentogo-head{font-size:12px;font-weight:500;color:var(--text-primary);margin-bottom:4px}
+.whentogo-sub{font-size:11px;color:var(--text-muted);margin-bottom:12px}
+.whentogo-bars{display:flex;align-items:flex-end;gap:4px;height:70px;padding-bottom:0}
+.whentogo-bar-wrap{display:flex;flex-direction:column;align-items:center;flex:1;gap:4px}
+.whentogo-bar{width:100%;border-radius:3px 3px 0 0;transition:height 0.2s}
+.bar-cheap{background:var(--green-border)}
+.bar-shoulder{background:var(--amber-border)}
+.bar-peak{background:var(--coral-border)}
+.whentogo-label{font-size:9px;color:var(--text-muted);text-align:center}
+.whentogo-price{font-size:9px;color:var(--text-secondary);text-align:center}
+.whentogo-legend{display:flex;gap:12px;margin-top:8px}
+.legend-item{font-size:10px;color:var(--text-secondary);display:flex;align-items:center;gap:4px}
+.legend-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+
+/* ── Skyscanner page mock ───────────────────────────────────────────────── */
+.sky-page{background:#eff3f8;border-radius:12px;overflow:hidden;position:relative;font-family:'Skyscanner_Relative',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;height:680px}
+.sky-header{background:white;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #e8edf2}
+.sky-logo{display:flex;align-items:center;gap:8px;color:#0062e3;font-size:18px;font-weight:700;text-decoration:none}
+.sky-logo-mark{display:flex;flex-direction:column;gap:2px;align-items:center}
+.sky-logo-rays{display:flex;gap:3px;margin-bottom:2px}
+.sky-logo-ray{width:3px;height:8px;background:#0062e3;border-radius:2px}
+.sky-logo-ray.tall{height:12px}
+.sky-logo-arc{width:18px;height:9px;border:2.5px solid #0062e3;border-bottom:none;border-radius:9px 9px 0 0}
+.sky-nav{display:flex;align-items:center;gap:20px;font-size:14px;color:#161616}
+.sky-nav-item{cursor:pointer;display:flex;align-items:center;gap:4px}
+.sky-hero{padding:40px 24px 28px;text-align:center}
+.sky-exploring{font-size:17px;color:#626971;margin-bottom:6px;letter-spacing:0}
+.sky-title{font-size:48px;font-weight:900;color:#161616;letter-spacing:-2px;line-height:1;margin-bottom:6px}
+.sky-subtitle{font-size:26px;color:#161616;line-height:1.25;font-style:italic}
+.sky-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;padding:0 20px 20px}
+.sky-card{background:white;border-radius:24px;overflow:hidden;box-shadow:0 1px 3px 0 rgba(22,22,22,0.25)}
+.sky-card-img-wrap{position:relative}
+.sky-card-img{width:100%;aspect-ratio:16/9;object-fit:cover;display:block}
+.sky-card-badge{position:absolute;top:10px;right:10px;background:white;border:0.5px solid #e6e6e6;border-radius:6px;padding:3px 8px;font-size:12px;font-weight:500;color:#161616;box-shadow:0 1px 2px rgba(0,0,0,0.1)}
+.sky-card-body{padding:16px;display:flex;flex-direction:column;gap:14px}
+.sky-city-section{display:flex;flex-direction:column;align-items:center;gap:5px}
+.sky-city-name{font-size:28px;font-weight:900;color:#161616;letter-spacing:-1.2px;text-align:center;line-height:1}
+.sky-flight-time{font-size:13px;color:#626971;display:flex;align-items:center;gap:4px;justify-content:center}
+.sky-stats{display:flex;gap:8px;justify-content:center}
+.sky-stat{flex:1;display:flex;flex-direction:column;align-items:center;gap:1px}
+.sky-stat-val{font-size:19px;font-weight:700;color:#161616}
+.sky-stat-val.ul{text-decoration:underline}
+.sky-stat-label{font-size:11px;color:#626971;text-align:center}
+.sky-divider{height:1px;background:#e8edf2;margin:0 -16px}
+.sky-ai-section{display:flex;flex-direction:column;gap:5px}
+.sky-ai-head{display:flex;align-items:center;gap:5px;font-size:14px;font-weight:700;color:#161616}
+.sky-ai-icon{color:#0062e3;font-size:14px}
+.sky-ai-text{font-size:13px;color:#626971;line-height:1.5}
+.sky-actions{display:flex;gap:8px}
+.sky-btn-secondary{flex:1;padding:11px 8px;border:1.5px solid #161616;border-radius:10px;background:white;font-size:14px;font-weight:600;cursor:pointer;color:#161616;font-family:inherit}
+.sky-btn-primary{flex:1;padding:11px 8px;background:#0062e3;border:none;border-radius:10px;color:white;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
+.sky-btn-secondary:hover{background:#f5f5f5}
+.sky-btn-primary:hover{background:#004eb5}
+.sky-fade{position:absolute;bottom:0;left:0;right:0;height:180px;background:linear-gradient(to bottom,transparent,white);pointer-events:none}
+.sky-composer-wrap{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);width:480px;z-index:10}
+.sky-composer{background:white;border:2px solid #0062e3;border-radius:32px;padding:16px 12px 12px 20px;box-shadow:0 4px 16px rgba(0,98,227,0.3);display:flex;flex-direction:column;gap:10px}
+.sky-composer-chips{display:flex;gap:8px;flex-wrap:wrap}
+.sky-composer-chip{display:inline-flex;align-items:center;gap:4px;padding:5px 12px;background:white;border:1px solid #e6e6e6;border-radius:24px;font-size:13px;font-weight:500;color:#161616;cursor:pointer;white-space:nowrap}
+.sky-composer-chip:hover{border-color:#aaa}
+.sky-composer-input-row{display:flex;align-items:center;gap:10px}
+.sky-composer-placeholder{flex:1;font-size:15px;color:#161616}
+.sky-composer-submit{width:44px;height:44px;background:#0062e3;border:none;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;color:white;font-size:20px;line-height:1;flex-shrink:0}
+.sky-composer-submit:hover{background:#004eb5}
+
+/* ── Multi-city panels ───────────────────────────────────────────────────── */
+.multi-panels{display:grid;grid-template-columns:2fr 3fr;gap:16px;padding:0 20px 20px}
+.multi-panel{background:white;border-radius:24px;padding:24px;display:flex;flex-direction:column;gap:20px}
+.multi-panel-sub{font-size:15px;color:#626971;line-height:1.4}
+.multi-panel-title{font-size:22px;font-weight:900;color:#161616;letter-spacing:-0.5px;line-height:1.15;margin-top:4px}
+.multi-panel-meta{font-size:14px;color:#161616;margin-top:4px}
+.multi-legs{display:flex;flex-direction:column;gap:8px}
+.multi-leg-card{display:flex;gap:14px;align-items:center;min-height:90px;border-radius:16px;padding:8px 14px 8px 8px}
+.multi-leg-card.needs-date{background:#f5f7fa}
+.multi-leg-thumb{width:76px;height:76px;border-radius:10px;object-fit:cover;flex-shrink:0}
+.multi-leg-info{display:flex;flex-direction:column;gap:3px;flex:1}
+.multi-leg-route{font-size:15px;font-weight:700;color:#161616}
+.multi-leg-date{font-size:13px;color:#161616}
+.multi-leg-warning{display:flex;align-items:center;gap:5px;font-size:13px;color:#161616;margin-top:2px}
+.multi-price-label{font-size:12px;color:#626971}
+.multi-price-val{font-size:18px;font-weight:700;color:#161616;margin-top:2px}
+.multi-cta{width:100%;padding:13px;background:#0062e3;border:none;border-radius:10px;color:white;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
+.multi-cta:hover{background:#004eb5}
+.detail-badge{display:inline-flex;background:#f0f4f8;border-radius:6px;padding:3px 10px;font-size:12px;font-weight:600;color:#161616;margin-bottom:10px}
+.detail-hero{display:flex;gap:14px;align-items:flex-start;margin-bottom:18px}
+.detail-heading{font-size:30px;font-weight:900;color:#161616;letter-spacing:-1px;line-height:1.1;flex:1}
+.detail-photo{width:110px;height:76px;border-radius:12px;object-fit:cover;flex-shrink:0}
+.detail-section-title{font-size:15px;font-weight:700;color:#161616;margin-bottom:8px}
+.detail-inputs{border:1px solid #c1c7cf;border-radius:14px;display:flex;align-items:center;height:72px;overflow:hidden;margin-bottom:18px}
+.detail-input-group{flex:1;padding:12px 18px;display:flex;flex-direction:column;gap:2px}
+.detail-input-label{font-size:11px;font-weight:700;color:#161616}
+.detail-input-val{font-size:15px;color:#161616;display:flex;align-items:center;justify-content:space-between}
+.detail-input-chevron{color:#626971;font-size:13px}
+.detail-input-divider{width:1px;height:36px;background:#c1c7cf;flex-shrink:0}
+.detail-date-warning{display:flex;align-items:center;gap:6px;font-size:14px;color:#161616;margin-bottom:10px}
+.detail-calendar{border:1px solid #c1c7cf;border-radius:14px;padding:20px}
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.cal-month{font-size:15px;font-weight:700;color:#161616}
+.cal-nav{width:26px;height:26px;display:flex;align-items:center;justify-content:center;border-radius:50%;cursor:pointer;font-size:14px;color:#161616;background:none;border:none}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px}
+.cal-day-header{font-size:11px;color:#626971;text-align:center;padding:3px 0;font-weight:500}
+.cal-day{display:flex;flex-direction:column;align-items:center;padding:4px 1px;border-radius:8px;cursor:pointer;min-width:0}
+.cal-day:not(.empty):hover{background:#eff3f8}
+.cal-day-num{font-size:13px;color:#161616;font-weight:500;line-height:1.4}
+.cal-day-price{font-size:10px;color:#0062e3}
+.cal-day.empty{pointer-events:none}
+.cal-day.selected{background:#0062e3}
+.cal-day.selected .cal-day-num{color:white}
+.cal-day.selected .cal-day-price{color:rgba(255,255,255,0.75)}
+
+/* modifier bar */
+.modifier-bar{display:flex;flex-wrap:wrap;gap:6px;padding:10px 20px;background:var(--surface);border-bottom:0.5px solid var(--border)}
+.modifier-tag{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:8px;font-size:12px;font-weight:500;border:0.5px solid}
+.mod-hard{background:#F0EEFF;color:#3C3489;border-color:#AFA9EC}
+.mod-exclusion{background:#FAECE7;color:#712B13;border-color:#F5C4B3}
+.mod-neutral{background:var(--surface1);color:var(--text-secondary);border-color:var(--border)}
+.modifier-tag-icon{font-size:13px}
+.modifier-tag-signals{font-size:10px;opacity:0.7;margin-left:2px}
+
+/* empty + note */
+.empty-canvas{background:var(--surface);border:0.5px dashed var(--border);border-radius:10px;padding:32px;text-align:center;color:var(--text-muted);font-size:12px}
+.results-note{font-size:11px;color:var(--text-muted);background:var(--surface);border:0.5px solid var(--border);border-radius:6px;padding:7px 10px}
+.results-note strong{color:var(--text-primary)}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>NLS intent rules + live canvas</h1>
+  <p>Rules structure · Component ordering · Slot-level content rules · Live preview</p>
+</div>
+
+<div class="main-tabs">
+  <button class="main-tab active" onclick="mainTab('rules',this)">Rules structure</button>
+  <button class="main-tab" onclick="mainTab('canvas',this)">Live canvas preview</button>
+</div>
+
+<div class="content">
+  <div id="section-rules">
+    <div class="sub-tabs" id="sub-tabs"></div>
+    <div id="panel-signals"  class="panel active"></div>
+    <div id="panel-components" class="panel"></div>
+    <div id="panel-rules"    class="panel"></div>
+    <div id="panel-proactive" class="panel"></div>
+    <div id="panel-slots"      class="panel"></div>
+    <div id="panel-modifiers"  class="panel"></div>
+  </div>
+
+  <div id="section-canvas" style="display:none">
+    <div class="canvas-layout">
+      <div class="signal-panel">
+        <div class="signal-panel-head">Query signals</div>
+        <div class="signal-panel-sub">Toggle signals to see how the canvas responds</div>
+        <div id="signal-groups"></div>
+      </div>
+      <div class="preview-area">
+        <div id="canvas-output"></div>
+        <div class="results-note" id="results-note"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── DATA ────────────────────────────────────────────────────────────────────
+// Edit these objects to update signal weights, component positions, and rules
+// without touching any other part of the file.
+
+const SIGNAL_GROUPS = [
+  { key: "intent",       label: "Intent" },
+  { key: "modifier",     label: "Modifier detected" },
+  { key: "card_slots",   label: "Card slot triggers" },
+  { key: "context",      label: "Context" },
+  { key: "dealbreakers", label: "Dealbreakers" },
+  { key: "flexibility",  label: "Flexibility" },
+  { key: "companion",    label: "Companion type" },
+  { key: "model_side",   label: "Model-side" }
+];
+
+const SIGNALS = [
+  { key:"budget",        label:"Budget signal",              detected:"\"cheap\", \"budget\", \"affordable\", \"under £X\"",              weight:5, type:"query_explicit", group:"intent",       defaultOn:false, desc:"\"cheap\", \"affordable\", \"under £500\""      },
+  { key:"multi",         label:"Multi-city",                 detected:"\"then\", \"and back\", multiple destinations",                      weight:5, type:"query_explicit", group:"intent",       defaultOn:false, desc:"\"Sydney → Seoul → Tokyo → Sydney\""            },
+  { key:"hotel",         label:"Hotel signal",               detected:"\"hotel\", \"stay\", \"accommodation\"",                             weight:4, type:"query_explicit", group:"intent",       defaultOn:false, desc:"\"need somewhere to stay\""                     },
+  { key:"explore",       label:"Explore / vague destination",detected:"\"Europe\", \"somewhere warm\", no specific city",                   weight:3, type:"query_explicit", group:"intent",       defaultOn:true,  desc:"\"somewhere warm in Europe\""                   },
+  { key:"weather",       label:"Weather signal",             detected:"\"sun\", \"no rain\", \"dry\", \"warm\", \"hot\"",                   weight:3, type:"query_explicit", group:"card_slots",   defaultOn:true,  desc:"\"no rain\", \"guaranteed sun\""                },
+  { key:"quiet",         label:"Quiet / low-tourist",        detected:"\"quiet\", \"peaceful\", \"off the beaten track\", \"not touristy\"", weight:3, type:"query_explicit", group:"card_slots",   defaultOn:true,  desc:"\"off the beaten track\", \"underrated\""       },
+  { key:"origin",        label:"Origin present",             detected:"Departure city known from query or profile",                         weight:3, type:"query_explicit", group:"context",      defaultOn:true,  desc:"Departure city known"                           },
+  { key:"dates",         label:"Dates present",              detected:"Month or specific dates in query",                                   weight:3, type:"query_explicit", group:"context",      defaultOn:true,  desc:"Month or dates in query"                        },
+  { key:"dealNightlife", label:"Dealbreaker: nightlife",     detected:"\"nightlife\", \"clubs\", \"party\", \"going out\"",                 weight:4, type:"query_explicit", group:"dealbreakers", defaultOn:false, desc:"\"nightlife\", \"clubs\", \"party scene\""       },
+  { key:"dealNature",    label:"Dealbreaker: nature",        detected:"\"hiking\", \"nature\", \"outdoors\", \"mountains\"",                weight:4, type:"query_explicit", group:"dealbreakers", defaultOn:false, desc:"\"hiking\", \"mountains\", \"outdoors\""         },
+  { key:"flexDates",     label:"Flexible on dates",          detected:"\"flexible\", \"whenever\", \"any time\", \"open to dates\"",        weight:2, type:"query_explicit", group:"flexibility",  defaultOn:false, desc:"\"flexible on dates\", \"any time\""            },
+  { key:"flexDest",      label:"Flexible on destination",    detected:"\"open to suggestions\", \"surprise me\", \"anywhere warm\"",        weight:2, type:"query_explicit", group:"flexibility",  defaultOn:false, desc:"\"surprise me\", \"open to suggestions\""       },
+  { key:"solo",          label:"Solo traveller",             detected:"\"solo\", \"just me\", \"travelling alone\"",                        weight:2, type:"query_explicit", group:"companion",    defaultOn:false, desc:"\"solo\", \"just me\", \"alone\""               },
+  { key:"couple",        label:"Couple",                     detected:"\"couple\", \"romantic\", \"partner\", \"two of us\"",               weight:2, type:"query_explicit", group:"companion",    defaultOn:false, desc:"\"couple\", \"romantic trip\", \"two of us\""   },
+  { key:"family",        label:"Family",                     detected:"\"family\", \"kids\", \"children\", \"with the kids\"",              weight:2, type:"query_explicit", group:"companion",    defaultOn:false, desc:"\"family\", \"kids\", \"children\""             },
+  { key:"carDep",        label:"Car-dependent destination",  detected:"Model knows destination has limited public transport",               weight:2, type:"model_side",    group:"model_side",   defaultOn:false, desc:"Model signal — limited public transport"         },
+  { key:"priceDrop",     label:"Price drop imminent",        detected:"Model detects prices historically fall in next 2 weeks",             weight:3, type:"model_side",    group:"model_side",   defaultOn:false, desc:"Model signal — price likely to drop"            },
+  { key:"modHard",       label:"Hard requirement",           detected:"\"must\", \"need\", \"essential\", \"has to\", \"non-negotiable\", \"absolutely\"",  weight:null, type:"modifier", group:"modifier", defaultOn:false, desc:"\"must have\", \"it has to be\", \"essential\""  },
+  { key:"modSoft",       label:"Soft preference",            detected:"\"would love\", \"prefer\", \"ideally\", \"hoping for\", \"if possible\"",           weight:null, type:"modifier", group:"modifier", defaultOn:false, desc:"\"I'd love\", \"ideally\", \"if possible\""      },
+  { key:"modExclusion",  label:"Exclusion",                  detected:"\"definitely not\", \"no X\", \"avoid\", \"hate\", \"don't want\", \"not into\"",    weight:null, type:"modifier", group:"modifier", defaultOn:false, desc:"\"definitely no\", \"avoid\", \"don't want\""    },
+  { key:"modNeutral",    label:"Neutral override",           detected:"\"not bothered\", \"don't mind\", \"either way\", \"not fussed\"",                   weight:null, type:"modifier", group:"modifier", defaultOn:false, desc:"\"not bothered\", \"don't mind\", \"not fussed\"" }
+];
+
+const COMPONENTS = [
+  { id:"origin_gate",      label:"Origin validation gate",         description:"City autocomplete — blocks results until resolved",          defaultPosition:1, verticals:["all"]                   },
+  { id:"date_gate",        label:"Date picker gate",               description:"Calendar — needed for accurate pricing",                      defaultPosition:2, verticals:["all"]                   },
+  { id:"multi_city",       label:"Multi-city route map + legs",    description:"Map with pins + horizontal leg timeline",                     defaultPosition:3, verticals:["explore","flights"]     },
+  { id:"budget_matrix",    label:"Budget cost matrix",             description:"Combined flight + hotel estimate per destination",            defaultPosition:3, verticals:["explore","hotels"]      },
+  { id:"dest_card",        label:"Destination card grid",          description:"Ranked destinations — slots vary by signal",                  defaultPosition:3, verticals:["explore"]               },
+  { id:"duration_matrix",  label:"Duration cost matrix",           description:"3 / 5 / 7-night cost comparison — flights + hotel",           defaultPosition:4, verticals:["explore","hotels"]      },
+  { id:"convenience_card", label:"Flight convenience comparison",  description:"Direct vs. 1-stop: price, total time, frequency",             defaultPosition:4, verticals:["explore","flights"]     },
+  { id:"proactive",        label:"Proactive intelligence insight", description:"Unsolicited helpful insight from model-side signal",           defaultPosition:5, verticals:["all"]                   },
+  { id:"whentogo",         label:"When-to-go chart",               description:"12-month price index — cheapest months highlighted",          defaultPosition:5, verticals:["explore"]               }
+];
+
+const RULES = [
+  { id:"R1",  conditionDisplay:"NOT origin",                    signals:[{key:"origin",present:false}],                                                                        componentId:"origin_gate",      action:"ask_first",       displayOrder:1, rationale:"Always blocks — no results without origin"                       },
+  { id:"R2",  conditionDisplay:"NOT dates + budget",            signals:[{key:"dates",present:false},{key:"budget",present:true}],                                              componentId:"date_gate",        action:"ask_first",       displayOrder:2, rationale:"Budget pricing needs dates"                                      },
+  { id:"R3",  conditionDisplay:"multi (wt 5)",                  signals:[{key:"multi",present:true}],                                                                          componentId:"multi_city",       action:"show",            displayOrder:3, rationale:"Strongest explicit signal — route verification primary"            },
+  { id:"R4",  conditionDisplay:"budget (5) + hotel (4)",        signals:[{key:"budget",present:true},{key:"hotel",present:true}],                                               componentId:"budget_matrix",    action:"show",            displayOrder:3, rationale:"Total cost is primary need — replaces card grid at slot 3"        },
+  { id:"R5",  conditionDisplay:"destination vague (3)",         signals:[{key:"explore",present:true}],                                                                        componentId:"dest_card",        action:"show",            displayOrder:3, rationale:"Default discovery — shown unless higher-weight rule displaces"    },
+  { id:"R6",  conditionDisplay:"budget + hotel + dates + NOT multi", signals:[{key:"budget",present:true},{key:"hotel",present:true},{key:"dates",present:true},{key:"multi",present:false}], componentId:"duration_matrix", action:"show", displayOrder:4, rationale:"Trip length changes total cost significantly"                    },
+  { id:"R7",  conditionDisplay:"explore + origin + NOT multi",  signals:[{key:"explore",present:true},{key:"origin",present:true},{key:"multi",present:false}],                componentId:"convenience_card", action:"show",            displayOrder:4, rationale:"Supporting flight detail — after destination card"               },
+  { id:"R8",  conditionDisplay:"flexDates OR NOT dates",        signals:[{key:"flexDates",present:true}],                                                                      componentId:"whentogo",         action:"show",            displayOrder:5, rationale:"Dates open — help user pick best month"                          },
+  { id:"R9",  conditionDisplay:"companion type present",        signals:[{key:"solo",present:true}],                                                                           componentId:"dest_card",        action:"modify_slots",    displayOrder:3, rationale:"Companion type modifies card slot content — tag + match row"     },
+  { id:"R10", conditionDisplay:"Any model-side signal",         signals:[{key:"carDep",present:true}],                                                                         componentId:"proactive",        action:"show_if_confident",displayOrder:6, rationale:"Always after results — never displaces explicit content"          }
+];
+
+const PROACTIVE_INSIGHTS = [
+  { id:"PI-1",  category:"Existing",        type:"Car hire nudge",      triggerSignal:"carDep",       confidence:"High",     copyPattern:"Getting around [Destination] is much easier with a hire car — many of the best spots aren't reachable by public transport",     suppressIf:"User already specified car hire"                    },
+  { id:"PI-2",  category:"Existing",        type:"Price timing",        triggerSignal:"priceDrop",    confidence:"High >80%",copyPattern:"Prices to [Destination] typically drop in the next [X] days — worth waiting if you're flexible",                              suppressIf:"User has specified non-flexible dates"              },
+  { id:"PI-3",  category:"Existing",        type:"Event warning",       triggerSignal:"eventOverlap", confidence:"Medium",   copyPattern:"Heads up — [Event] in [Destination] during your dates. Hotels book up fast and prices are higher",                            suppressIf:"User mentioned the event in query"                  },
+  { id:"PI-4",  category:"Existing",        type:"Date adjacency",      triggerSignal:"dateAdj",      confidence:"High",     copyPattern:"Flying [X days earlier/later] saves around [£X] — same destination, same experience",                                         suppressIf:"User specified non-flexible dates explicitly"       },
+  { id:"PI-5",  category:"When to travel",  type:"Popular month",       triggerSignal:"whenToTravel", confidence:"High",     copyPattern:"September is the most popular time to go",                                                                                    suppressIf:"User has already specified dates in September"      },
+  { id:"PI-6",  category:"When to travel",  type:"Cheapest month",      triggerSignal:"whenToTravel", confidence:"High",     copyPattern:"September is the cheapest month to go",                                                                                       suppressIf:"User has already specified dates"                   },
+  { id:"PI-7",  category:"When to book",    type:"Good time to book",   triggerSignal:"bookingWindow",confidence:"High",     copyPattern:"It's a good time to book — you'll likely get the best price in the next 2 weeks",                                              suppressIf:"User has already booked or prices are rising"       },
+  { id:"PI-8",  category:"When to book",    type:"Booking lead time",   triggerSignal:"bookingWindow",confidence:"High",     copyPattern:"Most people book this trip 6–8 weeks in advance",                                                                             suppressIf:"Trip is less than 6 weeks away"                     },
+  { id:"PI-9",  category:"Similar places",  type:"Affinity tip",        triggerSignal:"similarPlaces",confidence:"High",     copyPattern:"Tip: people who like [Destination] also consider Mallorca",                                                                   suppressIf:"User has explicitly stated destination preference"   },
+  { id:"PI-10", category:"Similar places",  type:"Also like",           triggerSignal:"similarPlaces",confidence:"Medium",   copyPattern:"You might also like Mallorca, Menorca and Tenerife",                                                                          suppressIf:"User has explicitly stated destination preference"   },
+  { id:"PI-11", category:"Similar places",  type:"Travellers like you", triggerSignal:"similarPlaces",confidence:"Medium",   copyPattern:"Travellers like you are also interested in Tenerife and Menorca in [month]",                                                  suppressIf:"User has explicitly stated destination preference"   },
+  { id:"PI-12", category:"Similar places",  type:"Also looked at",      triggerSignal:"similarPlaces",confidence:"Medium",   copyPattern:"For similar trips, people also looked at Valencia and Cádiz",                                                                 suppressIf:"User has explicitly stated destination preference"   },
+  { id:"PI-13", category:"Trends",          type:"Fewer searches",      triggerSignal:"searchTrend",  confidence:"High",     copyPattern:"Beat the crowds — there are 20% fewer searches than usual to [Destination] right now",                                         suppressIf:"Searches are at or above average"                   },
+  { id:"PI-14", category:"Trends",          type:"Trending up",         triggerSignal:"searchTrend",  confidence:"High",     copyPattern:"Trending: searches for [Destination] are up 13% this week",                                                                   suppressIf:"Searches are flat or declining"                     },
+  { id:"PI-15", category:"Trends",          type:"Popular route",       triggerSignal:"popularRoute", confidence:"High",     copyPattern:"Most people travelling from [Origin] to [Country] choose [Destination]",                                                      suppressIf:"User has specified a different destination"         },
+  { id:"PI-16", category:"Trends",          type:"Top route match",     triggerSignal:"popularRoute", confidence:"High",     copyPattern:"Most popular route for searches like yours",                                                                                   suppressIf:"Route is not in top 3 for origin/destination pair"  },
+  { id:"PI-17", category:"Trends",          type:"Popular season",      triggerSignal:"popularRoute", confidence:"High",     copyPattern:"It's a popular time of year for trips from [Origin] to [Destination]",                                                         suppressIf:"Travel dates are in off-peak period"                },
+  { id:"PI-18", category:"Traveller type",  type:"Budget travellers",   triggerSignal:"budget",       confidence:"Medium",   copyPattern:"Budget travellers often choose [Destination]",                                                                                 suppressIf:"User has not indicated budget sensitivity"          },
+  { id:"PI-19", category:"Traveller type",  type:"Family popular",      triggerSignal:"family",       confidence:"High",     copyPattern:"Popular with family travellers",                                                                                               suppressIf:"User has not indicated family travel"               },
+  { id:"PI-20", category:"Traveller type",  type:"Seasonal vibe",       triggerSignal:"whenToTravel", confidence:"Medium",   copyPattern:"For a sunny trip in [month], try [Destination]",                                                                               suppressIf:"User has already selected destination"              },
+  { id:"PI-21", category:"Traveller type",  type:"Couple tip",          triggerSignal:"couple",       confidence:"High",     copyPattern:"Tip: couples often go to [Destination] in [month]",                                                                            suppressIf:"User has not indicated couple travel"               },
+  { id:"PI-22", category:"Total trip costs",type:"Flight cost estimate", triggerSignal:"costEstimate", confidence:"High",     copyPattern:"Flights are usually around €200 per person",                                                                                  suppressIf:"User has already seen flight prices"                },
+  { id:"PI-23", category:"Total trip costs",type:"Package cost estimate",triggerSignal:"costEstimate", confidence:"High",     copyPattern:"It usually costs around €600 for flights and 2 nights in a hotel here for 2 people",                                          suppressIf:"User has already specified hotel separately"        },
+  { id:"PI-24", category:"Total trip costs",type:"Hotel cost estimate",  triggerSignal:"costEstimate", confidence:"High",     copyPattern:"4-star hotels are usually around €200 a night",                                                                                suppressIf:"User has not indicated hotel tier preference"       },
+  { id:"PI-25", category:"Price level",     type:"Price below average",  triggerSignal:"priceDrop",    confidence:"High",     copyPattern:"Flights are now 29% cheaper than usual",                                                                                      suppressIf:"Prices are at or above average"                     },
+  { id:"PI-26", category:"Price level",     type:"Price above average",  triggerSignal:"priceHigh",    confidence:"High",     copyPattern:"Flights are more expensive than usual — you may want to wait to book",                                                         suppressIf:"User has specified non-flexible dates"              },
+  { id:"PI-27", category:"Price level",     type:"Price average",        triggerSignal:"priceAverage", confidence:"Medium",   copyPattern:"Flight prices to [Destination] right now are about average",                                                                  suppressIf:"Prices are significantly above or below average"    }
+];
+
+const SLOT_RULES = [
+  { slot:"Card › Image",   name:"Destination image",             alwaysPresent:true,  triggerSignal:"—",                        order:"Fixed top",                                          content:"Fixed — destination photography"                                                                                        },
+  { slot:"Card › Compare", name:"Compare button",                alwaysPresent:true,  triggerSignal:"—",                        order:"Fixed top-right",                                    content:"Fixed — \"Compare\" with checkbox"                                                                                      },
+  { slot:"Card › Name",    name:"City name + country",           alwaysPresent:true,  triggerSignal:"—",                        order:"Fixed below image",                                  content:"Fixed — e.g. \"Ibiza · Spain\""                                                                                         },
+  { slot:"Card › Tags",    name:"Vibe tags",                     alwaysPresent:true,  triggerSignal:"Signal-driven content",    order:"Below city name",                                    content:"Tags filtered by signals. weather → temp tag. quiet → Hidden gem. budget → value. dealNightlife → Nightlife scene. dealNature → Nature access. solo → Solo-friendly. couple → Romantic base. family → Family-friendly." },
+  { slot:"Match › Row 1",  name:"Why it's a match — row 1",      alwaysPresent:false, triggerSignal:"quiet",                    order:"Position 1 when triggered · position 3 otherwise",  content:"\"Low tourist level in [month]\" — ordered FIRST when signal present"                                                    },
+  { slot:"Match › Row 2",  name:"Why it's a match — row 2",      alwaysPresent:false, triggerSignal:"weather",                  order:"Position 1 if only weather · 2 if quiet also",      content:"\"Expect drier weather in [month]\" — ordered after quiet row if both present"                                           },
+  { slot:"Match › Row 2b", name:"Why it's a match — dealbreaker",alwaysPresent:false, triggerSignal:"dealNightlife / dealNature",order:"After quiet/weather, before fallback",              content:"\"Great nightlife scene\" or \"Strong hiking access\""                                                                   },
+  { slot:"Match › Row 2c", name:"Why it's a match — companion",  alwaysPresent:false, triggerSignal:"solo / couple / family",   order:"After signal rows, before fallback",                content:"\"Great for solo travellers\" / \"Romantic neighbourhood base\" / \"Excellent family beaches\""                          },
+  { slot:"Match › Row 3",  name:"Why it's a match — fallback",   alwaysPresent:true,  triggerSignal:"—",                        order:"Always last · position 3",                          content:"\"Best of both: [destination characteristic]\" — always present, always fills final slot"                               },
+  { slot:"Card › Flights", name:"Flight price section",          alwaysPresent:false, triggerSignal:"explore OR flights",       order:"Below match box",                                    content:"\"[Month] flights from £[price] per traveller · [X]hr [Y]m typical flight time\""                                       },
+  { slot:"Card › More",    name:"\"More on [city]\" link",       alwaysPresent:true,  triggerSignal:"—",                        order:"Always last",                                        content:"Fixed — links to destination detail"                                                                                    }
+];
+
+// ─── MODIFIER DATA ───────────────────────────────────────────────────────────
+
+const MODIFIERS = [
+  {
+    id: "M1",
+    type: "Hard requirement",
+    sigKey: "modHard",
+    patterns: "\"must\", \"need\", \"essential\", \"has to be\", \"non-negotiable\", \"absolutely\"",
+    weightEffect: "MAX — overrides base signal weight",
+    uiEffect: "Lock badge on match row · Filter out non-matching destinations · Modifier bar shows 🔒",
+    example: "\"it has to be quiet\" / \"I must have good weather\" / \"essential: no crowds\"",
+    suppressIf: "Signal is already at maximum weight"
+  },
+  {
+    id: "M2",
+    type: "Soft preference",
+    sigKey: "modSoft",
+    patterns: "\"would love\", \"prefer\", \"ideally\", \"hoping for\", \"if possible\", \"would be nice\"",
+    weightEffect: "Standard — same as unmodified signal detection",
+    uiEffect: "Signal-driven slot content only — no filtering, no badge, default behaviour",
+    example: "\"I'd love somewhere quiet\" / \"ideally sunny\" / \"if possible, off the beaten track\"",
+    suppressIf: "Never suppressed — this is the default signal state"
+  },
+  {
+    id: "M3",
+    type: "Exclusion",
+    sigKey: "modExclusion",
+    patterns: "\"definitely not\", \"no [X]\", \"avoid\", \"hate\", \"don't want\", \"not into\", \"can't stand\"",
+    weightEffect: "Negative — actively removes matching results from consideration",
+    uiEffect: "Suppress matching destinations · Exclusion badge in results · Filter note in modifier bar shows 🚫",
+    example: "\"definitely no nightlife\" / \"avoid touristy places\" / \"I hate crowds\"",
+    suppressIf: "Exclusion conflicts with a hard requirement on the same signal"
+  },
+  {
+    id: "M4",
+    type: "Neutral override",
+    sigKey: "modNeutral",
+    patterns: "\"not bothered\", \"don't mind\", \"either way\", \"not fussed\", \"don't care about\"",
+    weightEffect: "Zero — suppresses signal entirely even if keyword is present",
+    uiEffect: "Signal weight set to 0 · No slot modification · Signal shown as inactive · Modifier bar shows ○",
+    example: "\"not bothered about weather\" / \"don't mind crowds\" / \"not fussed either way\"",
+    suppressIf: "Signal was already inactive / not detected in query"
+  }
+];
+
+// ─── DESTINATION DATA ────────────────────────────────────────────────────────
+
+const DESTINATIONS = [
+  { name:'Copenhagen', country:'Denmark',    badge:'Denmark',     img:'https://picsum.photos/seed/cph/800/450',  temp:'22°C', flights:'£73', hotels:'45€', time:'2 hours and 10 minutes', why:'In July, Copenhagen combines pleasant summer weather with vibrant outdoor culture — harbourfront dining, cycling-friendly streets and one of Europe\'s most relaxed city atmospheres.' },
+  { name:'Zurich',     country:'Switzerland',badge:'Switzerland', img:'https://picsum.photos/seed/zrh/800/450',  temp:'27°C', flights:'£83', hotels:'58€', time:'2 hours and 20 minutes', why:'July is Zurich at its best — long sunny days, lakeside swimming and a compact, walkable old town. The Alps are within easy day-trip distance.' },
+  { name:'Dubrovnik',  country:'Croatia',    badge:'Croatia',     img:'https://picsum.photos/seed/dbv/800/450',  temp:'30°C', flights:'£98', hotels:'52€', time:'2 hours and 45 minutes', why:'Dubrovnik\'s walled old town and Adriatic setting make July spectacular. Reliably dry, warm weather and crystal-clear sea for swimming.' },
+  { name:'Ibiza',      country:'Spain',      badge:'Spain',       img:'https://picsum.photos/seed/ibz/800/450',  temp:'31°C', flights:'£67', hotels:'38€', time:'2 hours and 15 minutes', why:'A romantic haven in July — beautiful beaches, lively nightlife, diverse food and a perfect climate for both relaxation and adventure.' },
+  { name:'Seville',    country:'Spain',      badge:'Spain',       img:'https://picsum.photos/seed/svq/800/450',  temp:'34°C', flights:'£79', hotels:'42€', time:'2 hours and 25 minutes', why:'Seville\'s Moorish architecture and tapas culture shine in July. Warm evenings, excellent food and a distinctly Spanish pace of life.' },
+  { name:'Barcelona',  country:'Spain',      badge:'Spain',       img:'https://picsum.photos/seed/bcn/800/450',  temp:'29°C', flights:'£61', hotels:'39€', time:'2 hours and 5 minutes',  why:'Barcelona\'s beaches, Gaudí architecture and food scene make it one of Europe\'s most complete city breaks. July brings long sunny days and a lively atmosphere.' }
+];
+
+function getWhyText(dest) {
+  const n = dest.name;
+  if (sigs.quiet && sigs.weather)  return `A genuinely off-the-beaten-track pick in July — ${n} gets reliable sunshine and significantly fewer tourists than comparable destinations. You get the weather without the crowds.`;
+  if (sigs.quiet)                  return `${n} attracts far fewer visitors than similar destinations in July, making it ideal if you want an authentic experience without the tourist crowds.`;
+  if (sigs.weather)                return `July is one of ${n}'s driest, sunniest months. Expect warm days, clear skies and ideal conditions for outdoor exploration.`;
+  if (sigs.dealNightlife)          return `${n} has one of Europe's most vibrant nightlife scenes in July — from beachfront clubs to rooftop bars that come alive well into the early hours.`;
+  if (sigs.dealNature)             return `${n} sits within easy reach of excellent hiking trails and natural landscapes. July's weather makes it ideal for outdoor exploration beyond the city.`;
+  if (sigs.solo)                   return `${n} is one of Europe's most solo-traveller-friendly destinations — easy to navigate, sociable, with a strong café culture that makes it easy to meet people.`;
+  if (sigs.couple)                 return `${n} is a natural choice for a romantic break — walkable streets, excellent restaurants and a relaxed pace that lends itself to slow, shared exploration.`;
+  if (sigs.family)                 return `With calm beaches, family-friendly attractions and plenty of outdoor space, ${n} offers an easy, enjoyable break for families travelling in July.`;
+  return dest.why;
+}
+
+// ─── KEYWORD MAP ─────────────────────────────────────────────────────────────
+// Maps signal keys to arrays of phrases that trigger them from typed input.
+// Signals not listed here are manual-only (origin, dates, explore, carDep, etc.)
+
+const SIGNAL_KEYWORDS = {
+  budget:        ['cheap','budget','affordable','value','under £','inexpensive','low cost','on a budget'],
+  hotel:         ['hotel','stay','accommodation','hostel','airbnb','somewhere to stay','place to stay'],
+  multi:         ['then go to','via ','stop in','and then travel','multi-city'],
+  weather:       ['sun','sunny','no rain','dry','warm','hot','good weather','guaranteed sun','heat','sunshine'],
+  quiet:         ['quiet','peaceful','off the beaten track','not touristy','underrated','hidden gem','fewer tourists','avoid crowds','unexplored','tucked away'],
+  dealNightlife: ['nightlife','clubbing','clubs','party','going out','bars','live music'],
+  dealNature:    ['hiking','nature','outdoors','mountains','trails','countryside','forest','national park'],
+  flexDates:     ['flexible','whenever','any time','open to dates','anytime','not tied to'],
+  flexDest:      ['surprise me','open to suggestions','anywhere warm','don\'t mind where','no preference'],
+  solo:          ['solo','just me','alone','by myself','travelling alone','on my own'],
+  couple:        ['couple','romantic','partner','two of us','anniversary','honeymoon','just the two'],
+  family:        ['family','kids','children','little ones','with the kids'],
+  modHard:       ['must','essential','has to','non-negotiable','absolutely need','definitely need','require'],
+  modSoft:       ['would love','ideally','prefer ','hoping','if possible','would be nice','I\'d like'],
+  modExclusion:  ['definitely not','avoid','hate ','don\'t want','not into','no nightlife','no crowds','exclude'],
+  modNeutral:    ['not bothered','don\'t mind','not fussed','either way','don\'t care','no preference on']
+};
+
+const MANUAL_ONLY_SIGS = new Set(['origin','dates','explore','carDep','priceDrop']);
+
+// ─── STATE ───────────────────────────────────────────────────────────────────
+
+const sigs = {};
+SIGNALS.forEach(s => { sigs[s.key] = s.defaultOn; });
+
+let queryText = '';
+
+const weightOverrides = {};
+const positionOverrides = {};
+
+// ─── HELPERS ─────────────────────────────────────────────────────────────────
+
+const pill = (text, color) => `<span class="pill p-${color}">${text}</span>`;
+const chip = text => `<span class="chip">${text}</span>`;
+const orderBadge = n => `<span class="order-num">${n}</span>`;
+const weightBar = w => `<div class="wbar"><div class="wfill" style="width:${Math.round((w/5)*100)}%"></div></div>`;
+const actionPill = a => ({ ask_first:['amber','Ask first'], show:['teal','Show'], show_if_confident:['green','Show if confident'], modify_slots:['purple','Modify slots'] }[a] || ['gray',a]).map((v,i)=>i===0?null:pill(v,({ask_first:'amber',show:'teal',show_if_confident:'green',modify_slots:'purple'}[a]||'gray')))[1];
+const typePill = t => t === 'model_side' ? pill('Model-side','green') : pill('Query explicit','blue');
+const alwaysPill = v => v ? pill('Always','teal') : pill('Signal-driven','amber');
+
+function getActionPill(action) {
+  const map = { ask_first:['amber','Ask first'], show:['teal','Show'], show_if_confident:['green','Show if confident'], modify_slots:['purple','Modify slots'] };
+  const [color, label] = map[action] || ['gray', action];
+  return pill(label, color);
+}
+
+// ─── TABLE BUILDERS ──────────────────────────────────────────────────────────
+
+function buildSignalsTable() {
+  const rows = SIGNALS.map(s => {
+    const w = weightOverrides[s.key] !== undefined ? weightOverrides[s.key] : s.weight;
+    return `<tr>
+      <td class="primary">${s.label}</td>
+      <td>${s.detected}</td>
+      <td class="editable-cell" data-key="${s.key}">
+        ${orderBadge(w)}<span contenteditable="true" data-original="${s.weight}" style="display:inline-block;min-width:14px;vertical-align:middle;margin-left:4px;font-size:12px">${w}</span>${weightBar(w)}
+      </td>
+      <td class="editable-cell">${typePill(s.type)}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('panel-signals').innerHTML = `
+    <div class="explain exp-blue"><strong>What this table is:</strong> Every signal NLS can detect. Weight is editable — click any value to change it.</div>
+    <div class="table-actions"><button class="reset-btn" onclick="resetWeights()">Reset weights to defaults</button></div>
+    <table>
+      <thead><tr><th>Signal name</th><th>How detected</th><th class="editable-col">Priority weight ✎</th><th class="editable-col">Signal type</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+
+  document.querySelectorAll('#panel-signals [contenteditable]').forEach(el => {
+    el.addEventListener('input', () => {
+      const td = el.closest('td');
+      const key = td.dataset.key;
+      const val = parseInt(el.textContent.trim()) || 0;
+      weightOverrides[key] = val;
+      const bar = td.querySelector('.wfill');
+      if (bar) bar.style.width = Math.round((Math.min(val,5)/5)*100) + '%';
+      const badge = td.querySelector('.order-num');
+      if (badge) badge.textContent = val;
+    });
+  });
+}
+
+function buildComponentsTable() {
+  const rows = COMPONENTS.map(c => {
+    const pos = positionOverrides[c.id] !== undefined ? positionOverrides[c.id] : c.defaultPosition;
+    const vPills = c.verticals.map(v => {
+      const col = {all:'gray',explore:'blue',hotels:'teal',flights:'amber'}[v] || 'gray';
+      return pill(v.charAt(0).toUpperCase()+v.slice(1), col);
+    }).join('');
+    return `<tr>
+      <td class="primary">${c.label}</td>
+      <td>${c.description}</td>
+      <td class="editable-cell" data-id="${c.id}">
+        <span contenteditable="true" data-original="${c.defaultPosition}" style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--sky-bg);color:var(--sky);font-size:11px;font-weight:500;border:0.5px solid var(--sky-border)">${pos}</span>
+      </td>
+      <td class="editable-cell">${vPills}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('panel-components').innerHTML = `
+    <div class="explain exp-blue"><strong>What this table is:</strong> Every UI component NLS can show. Position is editable — click any number to change it.</div>
+    <div class="table-actions"><button class="reset-btn" onclick="resetPositions()">Reset positions to defaults</button></div>
+    <table>
+      <thead><tr><th>Component</th><th>Description</th><th class="editable-col">Default position ✎</th><th class="editable-col">Vertical</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+
+  document.querySelectorAll('#panel-components [contenteditable]').forEach(el => {
+    el.addEventListener('input', () => {
+      const td = el.closest('td');
+      const id = td.dataset.id;
+      positionOverrides[id] = parseInt(el.textContent.trim()) || 0;
+    });
+  });
+}
+
+function buildRulesTable() {
+  const rows = RULES.map(r => {
+    const comp = COMPONENTS.find(c => c.id === r.componentId);
+    return `<tr>
+      <td class="primary">${r.id}</td>
+      <td>${chip(r.conditionDisplay)}</td>
+      <td>${comp ? chip(comp.label) : chip(r.componentId)}</td>
+      <td>${getActionPill(r.action)}</td>
+      <td class="editable-cell">${orderBadge(r.displayOrder)}</td>
+      <td style="font-size:11px;color:var(--text-secondary)">${r.rationale}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('panel-rules').innerHTML = `
+    <div class="explain exp-purple"><strong>What this table is:</strong> Logic layer — links signal conditions to component actions and display order.</div>
+    <table>
+      <thead><tr><th>#</th><th>If signals...</th><th>Component</th><th>Action</th><th class="editable-col">Display order</th><th>Order rationale</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+function buildProactiveTable() {
+  const catColors = {
+    'Existing':        'gray',
+    'When to travel':  'blue',
+    'When to book':    'purple',
+    'Similar places':  'teal',
+    'Trends':          'amber',
+    'Traveller type':  'coral',
+    'Total trip costs':'green',
+    'Price level':     'blue'
+  };
+
+  let rows = '';
+  let lastCat = null;
+  PROACTIVE_INSIGHTS.forEach(p => {
+    const confColor = p.confidence.startsWith('High') ? 'teal' : 'amber';
+    if (p.category !== lastCat) {
+      rows += `<tr><td colspan="6" style="background:var(--surface1);padding:6px 12px;font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-muted);border-bottom:0.5px solid var(--border)">${p.category}</td></tr>`;
+      lastCat = p.category;
+    }
+    rows += `<tr>
+      <td class="primary" style="color:var(--text-muted);font-size:11px">${p.id}</td>
+      <td>${pill(p.type, catColors[p.category] || 'green')}</td>
+      <td>${chip(p.triggerSignal)}</td>
+      <td>${pill(p.confidence, confColor)}</td>
+      <td style="font-size:11px;font-style:italic;color:var(--text-secondary)">"${p.copyPattern}"</td>
+      <td style="font-size:11px">${p.suppressIf}</td>
+    </tr>`;
+  });
+
+  document.getElementById('panel-proactive').innerHTML = `
+    <div class="explain exp-green"><strong>What this table is:</strong> Proactive insights triggered by model-side signals — not query keywords. "Suppress if..." prevents redundancy when the user already knows the thing.</div>
+    <table>
+      <thead><tr><th>ID</th><th>Insight type</th><th>Trigger signal</th><th>Confidence</th><th>Copy pattern</th><th>Suppress if...</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+function buildSlotsTable() {
+  const rows = SLOT_RULES.map(r => {
+    const hasTrigger = r.triggerSignal && r.triggerSignal !== '—';
+    const rowBg = hasTrigger && !r.alwaysPresent ? (r.slot.includes('Row 3') ? 'background:#F5FFF5' : 'background:#FFF9F0') : '';
+    return `<tr style="${rowBg}">
+      <td class="primary">${r.slot}</td>
+      <td>${r.name}</td>
+      <td>${alwaysPill(r.alwaysPresent)}</td>
+      <td>${hasTrigger ? chip(r.triggerSignal) : '—'}</td>
+      <td style="font-size:11px;color:var(--text-secondary)">${r.content}</td>
+      <td style="font-size:11px">${r.order}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('panel-slots').innerHTML = `
+    <div class="explain exp-teal"><strong>What this table is:</strong> Slot-level content rules within the destination card. Max 3 rows in "Why it's a match". Signal-driven rows ordered first.</div>
+    <table>
+      <thead><tr><th>Slot</th><th>Slot name</th><th>Always present?</th><th>Signal trigger</th><th>Content when triggered</th><th>Order within slot</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div class="rel-note">Switch to Live Canvas to see slot rules working interactively.</div>`;
+}
+
+function buildModifiersTable() {
+  const typeColors = { 'Hard requirement':'purple', 'Soft preference':'teal', 'Exclusion':'coral', 'Neutral override':'gray' };
+  const rows = MODIFIERS.map(m => {
+    const col = typeColors[m.type] || 'gray';
+    return `<tr>
+      <td class="primary">${m.id}</td>
+      <td>${pill(m.type, col)}</td>
+      <td style="font-size:11px;color:var(--text-secondary)">${m.patterns}</td>
+      <td style="font-size:11px;font-weight:500;color:var(--text-primary)">${m.weightEffect}</td>
+      <td style="font-size:11px;color:var(--text-secondary)">${m.uiEffect}</td>
+      <td style="font-size:11px;font-style:italic;color:var(--text-secondary)">${m.example}</td>
+      <td style="font-size:11px">${m.suppressIf}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('panel-modifiers').innerHTML = `
+    <div class="explain exp-purple"><strong>What this table is:</strong> A layer that captures how strongly or weakly the user expressed each signal. The modifier changes the weight and UI treatment of the paired signal — not the signal itself.</div>
+    <table>
+      <thead><tr><th>ID</th><th>Modifier type</th><th>Language patterns</th><th>Weight effect</th><th>UI treatment</th><th>Example</th><th>Suppress if...</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div class="rel-note">Modifiers attach to existing signals. "Quiet + hard requirement" and "quiet + soft preference" fire the same signal but produce different UI treatments. Toggle modifiers in the Live Canvas to see the difference.</div>`;
+}
+
+function buildSubTabs() {
+  const tabs = [
+    { id:'signals',    label:'Signals',               dot:'#185FA5' },
+    { id:'components', label:'Components',             dot:'#0F6E56' },
+    { id:'rules',      label:'Rules + order',          dot:'#534AB7' },
+    { id:'modifiers',  label:'Intent modifiers',       dot:'#3C3489' },
+    { id:'proactive',  label:'Proactive intelligence', dot:'#3B6D11' },
+    { id:'slots',      label:'Slot content rules',     dot:'#993C1D' }
+  ];
+  document.getElementById('sub-tabs').innerHTML = tabs.map((t,i) =>
+    `<button class="sub-tab${i===0?' active':''}" onclick="subTab('${t.id}',this)">
+      <span class="dot" style="background:${t.dot}"></span>${t.label}
+    </button>`
+  ).join('');
+}
+
+function buildSignalPanel() {
+  document.getElementById('signal-groups').innerHTML = SIGNAL_GROUPS.map(g => {
+    const groupSigs = SIGNALS.filter(s => s.group === g.key);
+    if (!groupSigs.length) return '';
+    const buttons = groupSigs.map(s =>
+      `<button class="sig-btn${sigs[s.key]?' on':''}" id="sb-${s.key}" onclick="toggleSig('${s.key}')">
+        <span class="sig-dot"></span>
+        <div><div class="sig-label">${s.label}</div><div class="sig-desc">${s.desc}</div></div>
+      </button>`
+    ).join('');
+    return `<div class="signal-group"><div class="signal-group-label">${g.label}</div>${buttons}</div>`;
+  }).join('');
+}
+
+// ─── CANVAS RENDER ───────────────────────────────────────────────────────────
+
+function render() {
+  const out = document.getElementById('canvas-output');
+  const note = document.getElementById('results-note');
+
+  let html = '';
+  const showing = [];
+
+  if (!sigs.origin) {
+    showing.push('Origin validation gate');
+    html += `<div class="gate-card">
+      <div class="gate-head"><span style="font-size:16px">📍</span><span class="gate-title">Where are you flying from?</span></div>
+      <div class="gate-desc">I need your departure city to show accurate prices and flight times.</div>
+      <input class="gate-input" placeholder="Type a city or airport…">
+    </div>`;
+  }
+
+  if (!sigs.dates && sigs.budget && sigs.origin) {
+    showing.push('Date picker gate');
+    html += `<div class="gate-card">
+      <div class="gate-head"><span style="font-size:16px">📅</span><span class="gate-title">When are you travelling?</span></div>
+      <div class="gate-desc">Budget estimates need dates to be accurate — prices vary significantly by month.</div>
+      <div class="gate-row">
+        <input class="gate-input-half" placeholder="Check-in">
+        <input class="gate-input-half" placeholder="Check-out">
+      </div>
+    </div>`;
+  }
+
+  if (sigs.multi && sigs.origin) {
+    showing.push('Multi-city layout (Figma design)');
+
+    const mcChips = [];
+    if (!sigs.budget) mcChips.push('+ Add budget');
+    if (!sigs.dates)  mcChips.push('+ Add dates');
+    if (!sigs.hotel)  mcChips.push('+ Add hotel');
+    if (!mcChips.length) mcChips.push('+ Refine search');
+
+    const mcLogoMark = `<div class="sky-logo-mark"><div class="sky-logo-rays"><div class="sky-logo-ray"></div><div class="sky-logo-ray tall"></div><div class="sky-logo-ray tall"></div><div class="sky-logo-ray tall"></div><div class="sky-logo-ray"></div></div><div class="sky-logo-arc"></div></div>`;
+
+    const legs = [
+      { route:'London to Paris', date:'4 August',         img:'https://picsum.photos/seed/paris-sky/152/152',  needsDate:false },
+      { route:'Paris to Rome',   date:'August, anytime',  img:'https://picsum.photos/seed/rome-sky/152/152',   needsDate:true  },
+      { route:'Rome to London',  date:'15 August',        img:'https://picsum.photos/seed/london-sky/152/152', needsDate:false }
+    ];
+
+    const legsHtml = legs.map(l => `
+      <div class="multi-leg-card${l.needsDate?' needs-date':''}">
+        <img class="multi-leg-thumb" src="${l.img}" alt="${l.route}" loading="lazy">
+        <div class="multi-leg-info">
+          <div class="multi-leg-route">${l.route}</div>
+          <div class="multi-leg-date">${l.date}</div>
+          ${l.needsDate ? `<div class="multi-leg-warning"><span style="color:#0062e3">⚠</span> Pick your dates</div>` : ''}
+        </div>
+      </div>`).join('');
+
+    // August 2026 calendar — Aug 1 = Saturday → 5 leading blanks in Mon–Sun grid
+    const calHeaders = ['M','T','W','T','F','S','S'].map(d=>`<div class="cal-day-header">${d}</div>`).join('');
+    const calBlanks  = Array(5).fill(`<div class="cal-day empty"></div>`).join('');
+    const calDays    = Array.from({length:31}, (_,i) => {
+      const d = i + 1;
+      return `<div class="cal-day${d===15?' selected':''}"><div class="cal-day-num">${d}</div><div class="cal-day-price">£29</div></div>`;
+    }).join('');
+
+    const mcModBar = (sigs.modHard || sigs.modExclusion || sigs.modNeutral) ? `<div class="modifier-bar">
+      ${sigs.modHard      ? `<div class="modifier-tag mod-hard"><span>🔒</span><span>Hard requirement</span><span class="modifier-tag-signals">— must match</span></div>` : ''}
+      ${sigs.modExclusion ? `<div class="modifier-tag mod-exclusion"><span>🚫</span><span>Exclusion active</span></div>` : ''}
+      ${sigs.modNeutral   ? `<div class="modifier-tag mod-neutral"><span>○</span><span>Neutral override</span></div>` : ''}
+    </div>` : '';
+
+    html += `<div class="sky-page">
+      <div class="sky-header">
+        <div class="sky-logo">${mcLogoMark}<span>Skyscanner</span></div>
+        <div class="sky-nav">
+          <span class="sky-nav-item" style="color:#0062e3;font-weight:600">✦ New search</span>
+          <span class="sky-nav-item">Help</span>
+          <span class="sky-nav-item">🌐</span>
+          <span class="sky-nav-item">🤍</span>
+          <span class="sky-nav-item">👤 Log in</span>
+        </div>
+      </div>
+      ${mcModBar}
+      <div class="sky-hero">
+        <div class="sky-exploring">You're currently exploring...</div>
+        <div class="sky-title">Multicity flights from London</div>
+        <div class="sky-subtitle">to Paris, Rome and back to London</div>
+      </div>
+      <div class="multi-panels">
+        <div class="multi-panel">
+          <div>
+            <div class="multi-panel-sub">So we can find you the right flights...</div>
+            <div class="multi-panel-title">We just need one more thing from you</div>
+            <div class="multi-panel-meta">3 stops, August 2026</div>
+          </div>
+          <div class="multi-legs">${legsHtml}</div>
+          <div>
+            <div class="multi-price-label">Estimated flight total</div>
+            <div class="multi-price-val">Add dates to get prices</div>
+          </div>
+          <button class="multi-cta">Go to flights</button>
+        </div>
+        <div class="multi-panel">
+          <div class="detail-badge">Flight 2</div>
+          <div class="detail-hero">
+            <div class="detail-heading">Paris to<br>Rome</div>
+            <img class="detail-photo" src="https://picsum.photos/seed/colosseum/220/152" alt="Rome" loading="lazy">
+          </div>
+          <div class="detail-section-title">Destination</div>
+          <div class="detail-inputs">
+            <div class="detail-input-group">
+              <div class="detail-input-label">From</div>
+              <div class="detail-input-val">Paris <span class="detail-input-chevron">⌄</span></div>
+            </div>
+            <div class="detail-input-divider"></div>
+            <div class="detail-input-group">
+              <div class="detail-input-label">To</div>
+              <div class="detail-input-val">Rome <span class="detail-input-chevron">⌄</span></div>
+            </div>
+          </div>
+          <div class="detail-section-title">Departure date</div>
+          <div class="detail-date-warning"><span style="color:#0062e3;font-size:16px">⚠</span> Pick your dates</div>
+          <div class="detail-calendar">
+            <div class="cal-header">
+              <div class="cal-month">August 2026</div>
+              <button class="cal-nav">›</button>
+            </div>
+            <div class="cal-grid">${calHeaders}${calBlanks}${calDays}</div>
+          </div>
+        </div>
+      </div>
+      <div class="sky-fade"></div>
+      <div class="sky-composer-wrap">
+        <div class="sky-composer">
+          <div class="sky-composer-chips">${mcChips.map(c=>`<div class="sky-composer-chip">${c}</div>`).join('')}</div>
+          <div class="sky-composer-input-row">
+            <input id="sky-query-input" type="text" placeholder="Start typing..." autocomplete="off" oninput="parseQuery(this.value)" style="flex:1;font-size:15px;color:#161616;border:none;outline:none;background:transparent;font-family:inherit;min-width:0">
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="font-size:18px;color:#626971">🎤</span>
+              <button class="sky-composer-submit">↑</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  if (sigs.budget && sigs.hotel && !sigs.multi && sigs.origin) {
+    showing.push('Budget cost matrix');
+    html += `<div class="budget-card">
+      <div class="budget-head">Budget breakdown · flights + hotel estimate</div>
+      <div class="budget-grid">
+        <div class="budget-cell"><div class="budget-cell-label">✈️ Flights</div><div class="budget-cell-val">£73</div><div class="budget-cell-sub">return per person</div></div>
+        <div class="budget-divider"></div>
+        <div class="budget-cell"><div class="budget-cell-label">🏨 Hotel</div><div class="budget-cell-val">£62</div><div class="budget-cell-sub">per night avg · 3★</div></div>
+        <div class="budget-divider"></div>
+        <div class="budget-cell"><div class="budget-cell-label">🧾 Est. total</div><div class="budget-cell-val total">~£257</div><div class="budget-cell-sub">flights + 3 nights</div></div>
+      </div>
+      <button class="budget-cta">Find flights + hotels</button>
+    </div>`;
+  }
+
+  if (sigs.budget && sigs.hotel && sigs.dates && !sigs.multi && sigs.origin) {
+    showing.push('Duration cost matrix');
+    html += `<div class="duration-card">
+      <div class="duration-head">Cost by trip length · Ibiza from London</div>
+      <table class="duration-table">
+        <thead><tr><th></th><th>3 nights</th><th class="duration-best">5 nights</th><th>7 nights</th></tr></thead>
+        <tbody>
+          <tr><td>Flights</td><td>£73</td><td class="duration-best">£73</td><td>£73</td></tr>
+          <tr><td>Hotel</td><td>£186</td><td class="duration-best">£310</td><td>£434</td></tr>
+          <tr><td>Est. total</td><td>£259</td><td class="duration-best">£383</td><td>£507</td></tr>
+          <tr><td>Per night</td><td>£86</td><td class="duration-best">£77</td><td>£72</td></tr>
+        </tbody>
+      </table>
+    </div>`;
+  }
+
+  if (sigs.explore && !sigs.multi && sigs.origin) {
+    showing.push('Destination card grid (Figma design)');
+
+    // Hero title driven by signals
+    let heroTitle = 'Cities in Europe';
+    if (sigs.quiet)         heroTitle = 'Hidden gems in Europe';
+    else if (sigs.dealNightlife) heroTitle = 'Cities with great nightlife';
+    else if (sigs.dealNature)    heroTitle = 'Nature-accessible city breaks';
+    else if (sigs.family)        heroTitle = 'Family-friendly cities in Europe';
+    else if (sigs.couple)        heroTitle = 'Romantic city breaks in Europe';
+    else if (sigs.solo)          heroTitle = 'Great European cities for solo travel';
+
+    const heroSub = sigs.dates ? 'for a city break, in July' : 'for a city break, whenever you\'re ready';
+
+    const clockIcon = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#626971" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;
+    const aiIcon   = `<svg width="13" height="13" viewBox="0 0 24 24" fill="#0062e3"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg>`;
+
+    const cardsHtml = DESTINATIONS.map(d => `
+      <div class="sky-card">
+        <div class="sky-card-img-wrap">
+          <img class="sky-card-img" src="${d.img}" alt="${d.name}" loading="lazy">
+          <div class="sky-card-badge">${d.badge}</div>
+        </div>
+        <div class="sky-card-body">
+          <div class="sky-city-section">
+            <div class="sky-city-name">${d.name}</div>
+            <div class="sky-flight-time">${clockIcon} Typical flight time: ${d.time}</div>
+          </div>
+          <div class="sky-stats">
+            <div class="sky-stat"><div class="sky-stat-val">${d.temp}</div><div class="sky-stat-label">maximum</div></div>
+            <div class="sky-stat"><div class="sky-stat-val ul">${d.flights}</div><div class="sky-stat-label">per traveller</div></div>
+            <div class="sky-stat"><div class="sky-stat-val ul">${d.hotels}</div><div class="sky-stat-label">per night</div></div>
+          </div>
+          <div class="sky-divider"></div>
+          <div class="sky-ai-section">
+            <div class="sky-ai-head">${aiIcon} Why it's great for you${sigs.modHard ? ' <span style="font-size:10px;background:#F0EEFF;color:#3C3489;border:0.5px solid #AFA9EC;border-radius:5px;padding:1px 6px;font-weight:600;margin-left:4px">Must match</span>' : ''}</div>
+            <div class="sky-ai-text">${sigs.modExclusion ? `<span style="color:var(--coral);text-decoration:line-through;opacity:0.5">${getWhyText(d)}</span> <span style="color:var(--coral);font-size:11px">— excluded</span>` : getWhyText(d)}</div>
+          </div>
+          <div class="sky-actions">
+            <button class="sky-btn-secondary">More insights</button>
+            <button class="sky-btn-primary">Find flights</button>
+          </div>
+        </div>
+      </div>`).join('');
+
+    const chips = [];
+    if (!sigs.budget) chips.push('+ Add budget');
+    if (!sigs.dates)  chips.push('+ Add dates');
+    if (!sigs.hotel)  chips.push('+ Add hotel');
+    if (chips.length === 0) chips.push('+ Refine search');
+
+    // Skyscanner logo mark (CSS rays + arc)
+    const logoMark = `<div class="sky-logo-mark">
+      <div class="sky-logo-rays">
+        <div class="sky-logo-ray"></div>
+        <div class="sky-logo-ray tall"></div>
+        <div class="sky-logo-ray tall"></div>
+        <div class="sky-logo-ray tall"></div>
+        <div class="sky-logo-ray"></div>
+      </div>
+      <div class="sky-logo-arc"></div>
+    </div>`;
+
+    html += `<div class="sky-page">
+      <div class="sky-header">
+        <div class="sky-logo">${logoMark}<span>Skyscanner</span></div>
+        <div class="sky-nav">
+          <span class="sky-nav-item">Help</span>
+          <span class="sky-nav-item">🌐</span>
+          <span class="sky-nav-item">🤍</span>
+          <span class="sky-nav-item">👤 Log in</span>
+        </div>
+      </div>
+      ${(sigs.modHard || sigs.modExclusion || sigs.modNeutral) ? `<div class="modifier-bar">
+        ${sigs.modHard      ? `<div class="modifier-tag mod-hard"><span class="modifier-tag-icon">🔒</span><span>Hard requirement</span><span class="modifier-tag-signals">— must match · results filtered</span></div>` : ''}
+        ${sigs.modExclusion ? `<div class="modifier-tag mod-exclusion"><span class="modifier-tag-icon">🚫</span><span>Exclusion active</span><span class="modifier-tag-signals">— matching results suppressed</span></div>` : ''}
+        ${sigs.modNeutral   ? `<div class="modifier-tag mod-neutral"><span class="modifier-tag-icon">○</span><span>Neutral override</span><span class="modifier-tag-signals">— signal weight set to 0</span></div>` : ''}
+      </div>` : ''}
+      <div class="sky-hero">
+        <div class="sky-exploring">You're currently exploring...</div>
+        <div class="sky-title">${heroTitle}</div>
+        <div class="sky-subtitle">${heroSub}</div>
+      </div>
+      <div class="sky-grid">${cardsHtml}</div>
+      <div class="sky-fade"></div>
+      <div class="sky-composer-wrap">
+        <div class="sky-composer">
+          <div class="sky-composer-chips">${chips.map(c=>`<div class="sky-composer-chip">${c}</div>`).join('')}</div>
+          <div class="sky-composer-input-row">
+            <input id="sky-query-input" type="text" placeholder="Start typing..." autocomplete="off" oninput="parseQuery(this.value)" style="flex:1;font-size:15px;color:#161616;border:none;outline:none;background:transparent;font-family:inherit;min-width:0">
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="font-size:18px;color:#626971">🎤</span>
+              <button class="sky-composer-submit">↑</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  if (sigs.carDep && !sigs.multi && sigs.origin) {
+    showing.push('Proactive — car hire nudge');
+    html += `<div class="proactive-card">
+      <div class="proactive-head">✦ Worth knowing</div>
+      <div class="proactive-text">Getting around Ibiza is much easier with a hire car — many of the best beaches and villages aren't reachable by public transport.</div>
+    </div>`;
+  }
+
+  if (sigs.priceDrop && !sigs.multi && sigs.origin) {
+    showing.push('Proactive — price timing');
+    html += `<div class="proactive-card">
+      <div class="proactive-head">✦ Worth knowing</div>
+      <div class="proactive-text">Prices to Ibiza typically drop over the next 12 days — worth waiting if you're flexible on booking date.</div>
+    </div>`;
+  }
+
+  if (sigs.flexDates || (!sigs.dates && !sigs.budget)) {
+    showing.push('When-to-go chart');
+    const months = ['J','F','M','A','M','J','J','A','S','O','N','D'];
+    const prices = [320,310,290,260,240,310,380,420,300,270,255,330];
+    const min = Math.min(...prices), max = Math.max(...prices);
+    const barsHtml = months.map((m,i) => {
+      const p = prices[i];
+      const h = Math.round(10 + ((p-min)/(max-min))*55);
+      const cls = p <= min+60 ? 'bar-cheap' : p >= max-60 ? 'bar-peak' : 'bar-shoulder';
+      return `<div class="whentogo-bar-wrap">
+        <div class="whentogo-price">£${p}</div>
+        <div class="whentogo-bar ${cls}" style="height:${h}px"></div>
+        <div class="whentogo-label">${m}</div>
+      </div>`;
+    }).join('');
+    html += `<div class="whentogo-card">
+      <div class="whentogo-head">When to go · Return flights from London</div>
+      <div class="whentogo-sub">Average price by departure month</div>
+      <div class="whentogo-bars">${barsHtml}</div>
+      <div class="whentogo-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:var(--green-border)"></div>Cheapest</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--amber-border)"></div>Shoulder</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--coral-border)"></div>Peak</div>
+      </div>
+    </div>`;
+  }
+
+  if (!html) html = `<div class="empty-canvas">Select signals on the left to see how the canvas responds</div>`;
+  out.innerHTML = html;
+
+  // Restore typed query and focus after innerHTML wipe
+  const qi = document.getElementById('sky-query-input');
+  if (qi && queryText) {
+    qi.value = queryText;
+    qi.focus();
+    qi.setSelectionRange(qi.value.length, qi.value.length);
+  }
+
+  let noteText = `<strong>Showing:</strong> ${showing.length ? showing.join(' · ') : 'nothing yet'}`;
+  if (sigs.quiet) noteText += ` · <strong>Slot rule:</strong> "Low tourist level" appears first in Why it's a match`;
+  if (sigs.weather && sigs.quiet) noteText += ` · "Drier weather" appears second`;
+  const companion = ['solo','couple','family'].filter(k => sigs[k]);
+  if (companion.length) noteText += ` · Companion (${companion.join('/')}) adds tag + match row`;
+  noteText += ` · <strong>Fallback row</strong> always fills final slot`;
+  note.innerHTML = noteText;
+}
+
+// ─── INTERACTIONS ────────────────────────────────────────────────────────────
+
+function parseQuery(text) {
+  queryText = text;
+  const lower = text.toLowerCase();
+
+  Object.keys(SIGNAL_KEYWORDS).forEach(key => {
+    if (MANUAL_ONLY_SIGS.has(key)) return;
+    const hit = SIGNAL_KEYWORDS[key].some(kw => lower.includes(kw.toLowerCase()));
+    sigs[key] = hit;
+    const btn = document.getElementById('sb-' + key);
+    if (btn) btn.classList.toggle('on', hit);
+  });
+
+  // Auto-detect dates from month names
+  const months = ['january','february','march','april','may','june','july','august','september','october','november','december'];
+  if (months.some(m => lower.includes(m))) {
+    sigs.dates = true;
+    const b = document.getElementById('sb-dates');
+    if (b) b.classList.add('on');
+  }
+
+  render();
+}
+
+function toggleSig(k) {
+  sigs[k] = !sigs[k];
+  document.getElementById('sb-' + k).classList.toggle('on', sigs[k]);
+  render();
+}
+
+function mainTab(id, btn) {
+  document.querySelectorAll('.main-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('section-rules').style.display = id === 'rules' ? '' : 'none';
+  document.getElementById('section-canvas').style.display = id === 'canvas' ? '' : 'none';
+  if (id === 'canvas') render();
+}
+
+function subTab(id, btn) {
+  document.querySelectorAll('.sub-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+}
+
+function resetWeights() {
+  Object.keys(weightOverrides).forEach(k => delete weightOverrides[k]);
+  buildSignalsTable();
+}
+
+function resetPositions() {
+  Object.keys(positionOverrides).forEach(k => delete positionOverrides[k]);
+  buildComponentsTable();
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+
+buildSubTabs();
+buildSignalsTable();
+buildComponentsTable();
+buildRulesTable();
+buildModifiersTable();
+buildProactiveTable();
+buildSlotsTable();
+buildSignalPanel();
+</script>
+</body>
+</html>

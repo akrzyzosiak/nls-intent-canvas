@@ -1,0 +1,183 @@
+{
+  "signals": [
+    {
+      "key": "budget",
+      "label": "Budget signal",
+      "detected": "\"cheap\", \"budget\", \"affordable\", \"under £X\"",
+      "weight": 5,
+      "type": "query_explicit",
+      "group": "intent",
+      "defaultOn": false,
+      "description": "\"cheap\", \"affordable\", \"under £500\""
+    },
+    {
+      "key": "multi",
+      "label": "Multi-city",
+      "detected": "\"then\", \"and back\", multiple destinations",
+      "weight": 5,
+      "type": "query_explicit",
+      "group": "intent",
+      "defaultOn": false,
+      "description": "\"Sydney → Seoul → Tokyo → Sydney\""
+    },
+    {
+      "key": "hotel",
+      "label": "Hotel signal",
+      "detected": "\"hotel\", \"stay\", \"accommodation\"",
+      "weight": 4,
+      "type": "query_explicit",
+      "group": "intent",
+      "defaultOn": false,
+      "description": "\"need somewhere to stay\""
+    },
+    {
+      "key": "explore",
+      "label": "Explore / vague destination",
+      "detected": "\"Europe\", \"somewhere warm\", no specific city",
+      "weight": 3,
+      "type": "query_explicit",
+      "group": "intent",
+      "defaultOn": true,
+      "description": "\"somewhere warm in Europe\""
+    },
+    {
+      "key": "weather",
+      "label": "Weather signal",
+      "detected": "\"sun\", \"no rain\", \"dry\", \"warm\", \"hot\"",
+      "weight": 3,
+      "type": "query_explicit",
+      "group": "card_slots",
+      "defaultOn": true,
+      "description": "\"no rain\", \"guaranteed sun\""
+    },
+    {
+      "key": "quiet",
+      "label": "Quiet / low-tourist",
+      "detected": "\"quiet\", \"peaceful\", \"off the beaten track\", \"not touristy\", \"underrated\"",
+      "weight": 3,
+      "type": "query_explicit",
+      "group": "card_slots",
+      "defaultOn": true,
+      "description": "\"off the beaten track\", \"underrated\""
+    },
+    {
+      "key": "origin",
+      "label": "Origin present",
+      "detected": "Departure city known from query or profile",
+      "weight": 3,
+      "type": "query_explicit",
+      "group": "context",
+      "defaultOn": true,
+      "description": "Departure city known"
+    },
+    {
+      "key": "dates",
+      "label": "Dates present",
+      "detected": "Month or specific dates in query",
+      "weight": 3,
+      "type": "query_explicit",
+      "group": "context",
+      "defaultOn": true,
+      "description": "Month or dates in query"
+    },
+    {
+      "key": "dealNightlife",
+      "label": "Dealbreaker: nightlife",
+      "detected": "\"nightlife\", \"clubs\", \"party\", \"going out\"",
+      "weight": 4,
+      "type": "query_explicit",
+      "group": "dealbreakers",
+      "defaultOn": false,
+      "description": "\"nightlife\", \"clubs\", \"party scene\""
+    },
+    {
+      "key": "dealNature",
+      "label": "Dealbreaker: nature",
+      "detected": "\"hiking\", \"nature\", \"outdoors\", \"mountains\", \"trails\"",
+      "weight": 4,
+      "type": "query_explicit",
+      "group": "dealbreakers",
+      "defaultOn": false,
+      "description": "\"hiking\", \"mountains\", \"outdoors\""
+    },
+    {
+      "key": "flexDates",
+      "label": "Flexible on dates",
+      "detected": "\"flexible\", \"whenever\", \"any time\", \"open to dates\"",
+      "weight": 2,
+      "type": "query_explicit",
+      "group": "flexibility",
+      "defaultOn": false,
+      "description": "\"flexible on dates\", \"any time\""
+    },
+    {
+      "key": "flexDest",
+      "label": "Flexible on destination",
+      "detected": "\"open to suggestions\", \"surprise me\", \"anywhere warm\"",
+      "weight": 2,
+      "type": "query_explicit",
+      "group": "flexibility",
+      "defaultOn": false,
+      "description": "\"surprise me\", \"open to suggestions\""
+    },
+    {
+      "key": "solo",
+      "label": "Solo traveller",
+      "detected": "\"solo\", \"just me\", \"travelling alone\", \"by myself\"",
+      "weight": 2,
+      "type": "query_explicit",
+      "group": "companion",
+      "defaultOn": false,
+      "description": "\"solo\", \"just me\", \"alone\""
+    },
+    {
+      "key": "couple",
+      "label": "Couple",
+      "detected": "\"couple\", \"romantic\", \"partner\", \"two of us\"",
+      "weight": 2,
+      "type": "query_explicit",
+      "group": "companion",
+      "defaultOn": false,
+      "description": "\"couple\", \"romantic trip\", \"two of us\""
+    },
+    {
+      "key": "family",
+      "label": "Family",
+      "detected": "\"family\", \"kids\", \"children\", \"with the kids\"",
+      "weight": 2,
+      "type": "query_explicit",
+      "group": "companion",
+      "defaultOn": false,
+      "description": "\"family\", \"kids\", \"children\""
+    },
+    {
+      "key": "carDep",
+      "label": "Car-dependent destination",
+      "detected": "Model knows destination has limited public transport",
+      "weight": 2,
+      "type": "model_side",
+      "group": "model_side",
+      "defaultOn": false,
+      "description": "Model signal — limited public transport"
+    },
+    {
+      "key": "priceDrop",
+      "label": "Price drop imminent",
+      "detected": "Model detects prices historically fall in next 2 weeks",
+      "weight": 3,
+      "type": "model_side",
+      "group": "model_side",
+      "defaultOn": false,
+      "description": "Model signal — price likely to drop"
+    }
+  ],
+  "groups": [
+    { "key": "intent",       "label": "Intent" },
+    { "key": "card_slots",   "label": "Card slot triggers" },
+    { "key": "context",      "label": "Context" },
+    { "key": "dealbreakers", "label": "Dealbreakers" },
+    { "key": "flexibility",  "label": "Flexibility" },
+    { "key": "companion",    "label": "Companion type" },
+    { "key": "model_side",   "label": "Model-side" }
+  ]
+}
